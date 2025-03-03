@@ -15,6 +15,7 @@ const (
 	maxRetries = 3
 )
 
+// Client TODO: надо доработать клиент
 type Client interface {
 	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
