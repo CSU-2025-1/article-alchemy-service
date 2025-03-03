@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/config"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/client/postgresql"
-	"github.com/jackc/pgx/v5"
 )
 
 type App struct {
@@ -27,8 +26,6 @@ func New() *App {
 		cfg.Postgres.Database)
 
 	pool := postgresql.NewClient(context.Background(), dsn)
-	pgx.CollectRows()
-	pgx.RowToStructByName()
 
 	return &App{
 		cfg:  cfg,

@@ -19,6 +19,7 @@ type Client interface {
 	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	Close()
 }
 
 type pgxClient struct {
@@ -41,6 +42,8 @@ func NewClient(ctx context.Context, dsn string) Client {
 			continue
 		}
 
+		pool.Close()
+
 		return &pgxClient{pool: pool}
 	}
 
@@ -48,14 +51,18 @@ func NewClient(ctx context.Context, dsn string) Client {
 	return nil
 }
 
-func (c *pgxClient) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
-	return c.pool.Exec(ctx, sql, arguments...)
+func (p *pgxClient) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
+	return p.pool.Exec(ctx, sql, arguments...)
 }
 
-func (c *pgxClient) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
-	return c.pool.Query(ctx, sql, args...)
+func (p *pgxClient) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	return p.pool.Query(ctx, sql, args...)
 }
 
-func (c *pgxClient) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
-	return c.pool.QueryRow(ctx, sql, args...)
+func (p *pgxClient) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
+	return p.pool.QueryRow(ctx, sql, args...)
+}
+
+func (p *pgxClient) Close() {
+	p.pool.Close()
 }
