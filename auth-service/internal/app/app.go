@@ -8,13 +8,11 @@ import (
 )
 
 type App struct {
-	cfg  *config.Config
 	pool postgresql.Client
 }
 
 func New() *App {
 
-	// Init config
 	cfg := config.MustLoad()
 
 	dsn := fmt.Sprintf(
@@ -28,11 +26,9 @@ func New() *App {
 	pool := postgresql.NewClient(context.Background(), dsn)
 
 	return &App{
-		cfg:  cfg,
 		pool: pool,
 	}
 }
 
 func (a *App) Run() {
-	fmt.Println(a.cfg)
 }
