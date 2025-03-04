@@ -3,8 +3,6 @@ package postgresql
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"log/slog"
@@ -15,19 +13,9 @@ const (
 	maxRetries = 3
 )
 
-// Client TODO: надо доработать клиент
-type Client interface {
-	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
-	Close()
-}
+// Client TODO: надо доработать клиент/добавить интерфейс
 
-type pgxClient struct {
-	pool *pgxpool.Pool
-}
-
-func NewClient(ctx context.Context, dsn string) Client {
+func NewClient(ctx context.Context, dsn string) *pgxpool.Pool {
 	for i := 0; i < maxRetries; i++ {
 		pool, err := pgxpool.New(ctx, dsn)
 		if err != nil {
@@ -43,27 +31,9 @@ func NewClient(ctx context.Context, dsn string) Client {
 			continue
 		}
 
-		pool.Close()
-
-		return &pgxClient{pool: pool}
+		return pool
 	}
 
 	log.Fatalln(fmt.Errorf("failed to connect to the database after %d retries", maxRetries))
 	return nil
-}
-
-func (p *pgxClient) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
-	return p.pool.Exec(ctx, sql, arguments...)
-}
-
-func (p *pgxClient) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
-	return p.pool.Query(ctx, sql, args...)
-}
-
-func (p *pgxClient) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
-	return p.pool.QueryRow(ctx, sql, args...)
-}
-
-func (p *pgxClient) Close() {
-	p.pool.Close()
 }

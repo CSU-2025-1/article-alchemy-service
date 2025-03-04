@@ -1,5 +1,5 @@
 services:
-  db:
+  db-auth-service:
     restart: always
     image: postgres:alpine3.21
     environment:

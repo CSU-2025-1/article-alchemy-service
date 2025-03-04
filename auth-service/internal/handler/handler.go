@@ -1,4 +1,4 @@
-package api
+package handler
 
 type Handler struct{}
 
