@@ -49,7 +49,7 @@ func New() *App {
 
 	authService := auth.NewService(jwtManager, userRepo, tokenRepo)
 
-	authHandler := handler.NewHandler(authService)
+	authHandler := handler.NewAuthHandler(authService)
 
 	grpcServer := grpc.NewServer(grpc.Creds(insecure.NewCredentials()))
 
@@ -63,7 +63,7 @@ func New() *App {
 }
 
 func (a *App) Run() {
-	listener, err := net.Listen("tcp", net.JoinHostPort(a.cfg.GRPCServer.Port, a.cfg.GRPCServer.Port))
+	listener, err := net.Listen("tcp", net.JoinHostPort(a.cfg.GRPCServer.Host, a.cfg.GRPCServer.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
