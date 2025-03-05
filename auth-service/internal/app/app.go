@@ -4,15 +4,26 @@ import (
 	"context"
 	"fmt"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/config"
+	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/auth"
+	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/handler"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/repository"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/client/postgresql"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/client/redis"
+	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/jwt/manager"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"time"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"log"
+	"net"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 type App struct {
-	pool *pgxpool.Pool
+	pool       *pgxpool.Pool
+	grpcServer *grpc.Server
+	cfg        *config.Config
 }
 
 func New() *App {
@@ -26,20 +37,51 @@ func New() *App {
 		cfg.Postgres.Port,
 		cfg.Postgres.Database)
 
-	pool := postgresql.NewClient(context.Background(), dsn)
+	postgresClient := postgresql.NewClient(context.Background(), dsn)
 
-	redi1 := redis.NewClient(cfg.Redis.Host, cfg.Redis.Port)
+	redisClient := redis.NewClient(cfg.Redis.Host, cfg.Redis.Port)
 
-	t := repository.NewTokenRepository(redi1)
+	jwtManager := manager.MustLoadTokenManager(cfg.JWT.Secret)
 
-	t.Set(context.Background(), 1, "хуй", "токен", 1*time.Minute)
+	userRepo := repository.NewUserRepository(postgresClient)
 
-	fmt.Println(t.Get(context.Background(), 1, "хуй"))
+	tokenRepo := repository.NewTokenRepository(redisClient)
+
+	authService := auth.NewService(jwtManager, userRepo, tokenRepo)
+
+	authHandler := handler.NewHandler(authService)
+
+	grpcServer := grpc.NewServer(grpc.Creds(insecure.NewCredentials()))
+
+	authHandler.Register(grpcServer)
 
 	return &App{
-		pool: pool,
+		pool:       postgresClient,
+		grpcServer: grpcServer,
+		cfg:        cfg,
 	}
 }
 
 func (a *App) Run() {
+	listener, err := net.Listen("tcp", net.JoinHostPort(a.cfg.GRPCServer.Port, a.cfg.GRPCServer.Port))
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	go func() {
+		if err = a.grpcServer.Serve(listener); err != nil {
+			log.Fatalf("failed to listen: %v", err)
+		}
+	}()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+	<-stop
+	a.Stop()
+}
+
+func (a *App) Stop() {
+	a.grpcServer.GracefulStop()
+	a.pool.Close()
 }

@@ -8,16 +8,15 @@ import (
 
 type Service struct {
 	JWTManager manager.Manager
-	TokenRepo  repository.TokenRepository
-	UserRepo   repository.UserRepository
+	TokenRepo  *repository.TokenRepository
+	UserRepo   *repository.UserRepository
 }
 
 func NewService(
 	jwtManager manager.Manager,
-	userRepo repository.UserRepository,
-	tokenRepo repository.TokenRepository,
+	userRepo *repository.UserRepository,
+	tokenRepo *repository.TokenRepository,
 ) *Service {
-
 	return &Service{
 		JWTManager: jwtManager,
 		TokenRepo:  tokenRepo,
