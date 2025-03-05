@@ -27,7 +27,7 @@ func (h *AuthHandler) SignUp(
 	request *authpb.RegisterRequest,
 ) (*authpb.TokenResponse, error) {
 
-	tokens, err := h.authService.SignUp(ctx, auth.SignUpDTO{
+	_, err := h.authService.SignUp(ctx, auth.SignUpDTO{
 		Email:    request.GetEmail(),
 		Username: request.GetUsername(),
 		Password: request.GetPassword(),

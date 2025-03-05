@@ -7,9 +7,9 @@ import (
 )
 
 type Service struct {
-	JWTManager manager.Manager
-	TokenRepo  *repository.TokenRepository
-	UserRepo   *repository.UserRepository
+	jwtManager manager.Manager
+	tokenRepo  *repository.TokenRepository
+	userRepo   *repository.UserRepository
 }
 
 func NewService(
@@ -18,9 +18,9 @@ func NewService(
 	tokenRepo *repository.TokenRepository,
 ) *Service {
 	return &Service{
-		JWTManager: jwtManager,
-		TokenRepo:  tokenRepo,
-		UserRepo:   userRepo,
+		jwtManager: jwtManager,
+		tokenRepo:  tokenRepo,
+		userRepo:   userRepo,
 	}
 }
 
@@ -32,6 +32,8 @@ func (s *Service) SignUp(ctx context.Context, dto SignUpDTO) (TokenDTO, error) {
 	// генерация refresh/access
 	// сохранение рефреша по userid и deviceid
 	//заебок
+
+	return TokenDTO{}, nil
 }
 
 func (s *Service) LogIn(ctx context.Context, dto LogInDTO) (uint64, error) {

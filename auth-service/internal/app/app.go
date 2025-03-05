@@ -10,6 +10,7 @@ import (
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/client/postgresql"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/client/redis"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/jwt/manager"
+	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/migrator"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -40,6 +41,8 @@ func New() *App {
 	postgresClient := postgresql.NewClient(context.Background(), dsn)
 
 	redisClient := redis.NewClient(cfg.Redis.Host, cfg.Redis.Port)
+
+	migrator.Migrate(postgresClient)
 
 	jwtManager := manager.MustLoadTokenManager(cfg.JWT.Secret)
 
