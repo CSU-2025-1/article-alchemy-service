@@ -27,18 +27,21 @@ func (h *AuthHandler) SignUp(
 	request *authpb.RegisterRequest,
 ) (*authpb.TokenResponse, error) {
 
-	_, err := h.authService.SignUp(ctx, auth.SignUpDTO{
-		Email:    request.GetEmail(),
-		Username: request.GetUsername(),
-		Password: request.GetPassword(),
-		DeviceID: request.GetDeviceId(),
+	tokens, err := h.authService.SignUp(ctx, auth.SignUpDTO{
+		Email:    request.Email,
+		Username: request.Username,
+		Password: request.Password,
+		DeviceID: request.DeviceId,
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, err
+	return &authpb.TokenResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	}, err
 }
 
 func (h *AuthHandler) LogIn(
