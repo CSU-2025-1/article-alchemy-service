@@ -24,8 +24,14 @@ func NewService(
 	}
 }
 
-func (s *Service) SignUp(ctx context.Context, dto SignUpDTO) (uint64, error) {
-	panic("implement me")
+func (s *Service) SignUp(ctx context.Context, dto SignUpDTO) (TokenDTO, error) {
+	// проверка если чел в бд с таким же email
+	// если человек есть, то вкидываем ошиб-очку
+	// если человека, то dto->usermodel
+	// создание записи в бд
+	// генерация refresh/access
+	// сохранение рефреша по userid и deviceid
+	//заебок
 }
 
 func (s *Service) LogIn(ctx context.Context, dto LogInDTO) (uint64, error) {

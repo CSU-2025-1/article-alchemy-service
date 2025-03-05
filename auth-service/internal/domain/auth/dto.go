@@ -12,3 +12,8 @@ type LogInDTO struct {
 	Password string
 	DeviceID string
 }
+
+type TokenDTO struct {
+	AccessToken  string
+	RefreshToken string
+}
