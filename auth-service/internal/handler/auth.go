@@ -7,7 +7,6 @@ import (
 )
 
 type Handler struct {
-	//authpb.UnimplementedAuthServer
 	authService auth.Service
 }
 
