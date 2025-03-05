@@ -4,9 +4,11 @@ type SignUpDTO struct {
 	Email    string
 	Username string
 	Password string
+	DeviceID string
 }
 
 type LogInDTO struct {
 	Email    string
 	Password string
+	DeviceID string
 }

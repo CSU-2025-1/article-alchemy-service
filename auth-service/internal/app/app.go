@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/config"
+	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/repository"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/client/postgresql"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/client/redis"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"time"
 )
 
 type App struct {
@@ -14,7 +16,6 @@ type App struct {
 }
 
 func New() *App {
-
 	cfg := config.MustLoad()
 
 	dsn := fmt.Sprintf(
@@ -29,7 +30,11 @@ func New() *App {
 
 	redi1 := redis.NewClient(cfg.Redis.Host, cfg.Redis.Port)
 
-	fmt.Println(redi1)
+	t := repository.NewTokenRepository(redi1)
+
+	t.Set(context.Background(), 1, "хуй", "токен", 1*time.Minute)
+
+	fmt.Println(t.Get(context.Background(), 1, "хуй"))
 
 	return &App{
 		pool: pool,
