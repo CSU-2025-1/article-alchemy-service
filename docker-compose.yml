@@ -1,5 +1,5 @@
 services:
-  db:
+  db-auth-service:
     restart: always
     image: postgres:alpine3.21
     environment:
@@ -20,6 +20,21 @@ services:
       - "6379:6379"
     networks:
       - backend
+    
+  worker:
+    build:
+      context: ./worker-service
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - YANDEX_TOKEN=${YANDEX_TOKEN}
+    ports:
+      - "8008:8080"
+    networks:
+      - backend
 
 networks:
   backend:
+    driver: bridge
