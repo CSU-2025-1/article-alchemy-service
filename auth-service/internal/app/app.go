@@ -16,6 +16,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -31,7 +33,7 @@ func New() *App {
 	cfg := config.MustLoad()
 
 	dsn := fmt.Sprintf(
-		"postgresql://%v:%v@%v:%v/%v",
+		"postgres://%v:%v@%v:%v/%v",
 		cfg.Postgres.User,
 		cfg.Postgres.Password,
 		cfg.Postgres.Host,
@@ -50,7 +52,7 @@ func New() *App {
 
 	tokenRepo := repository.NewTokenRepository(redisClient)
 
-	authService := auth.NewService(jwtManager, userRepo, tokenRepo)
+	authService := auth.NewService(cfg.JWT, jwtManager, userRepo, tokenRepo)
 
 	authHandler := handler.NewAuthHandler(authService)
 
@@ -70,6 +72,13 @@ func (a *App) Run() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+
+	go func() {
+		log.Println("pprof running on :6060")
+		if err := http.ListenAndServe("localhost:1010", nil); err != nil {
+			log.Printf("pprof failed: %v", err)
+		}
+	}()
 
 	go func() {
 		if err = a.grpcServer.Serve(listener); err != nil {

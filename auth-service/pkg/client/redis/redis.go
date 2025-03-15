@@ -5,8 +5,6 @@ import (
 	"net"
 )
 
-// Client TODO: надо доработать клиент/добавить интерфейс
-
 func NewClient(host, port string) *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     net.JoinHostPort(host, port),

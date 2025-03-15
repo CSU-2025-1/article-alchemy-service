@@ -12,10 +12,10 @@ func Migrate(pool *pgxpool.Pool) {
 	defer db.Close()
 
 	if err := goose.SetDialect("postgres"); err != nil {
-		log.Fatalln("error applying migrations", err)
+		log.Fatalln("errors applying migrations", err)
 	}
 
 	if err := goose.Up(db, "migrations"); err != nil {
-		log.Fatalln("error applying migrations", err)
+		log.Fatalln("errors applying migrations", err)
 	}
 }

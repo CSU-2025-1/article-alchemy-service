@@ -2,7 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
+	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/user"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -14,15 +17,17 @@ func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
 	return &UserRepository{pool}
 }
 
-func (u *UserRepository) Create(ctx context.Context, user user.User) (uint64, error) {
-	sql := `INSERT INTO public.users (username, email, password, created_at) VALUES ($1, $2, $3, $4) RETURNING user_id`
+func (u *UserRepository) Create(ctx context.Context, usr user.User) (uint64, error) {
+	sql := `INSERT INTO public.users (username, email, is_active, password_hash, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING user_id`
 
 	row := u.pool.QueryRow(
 		ctx,
 		sql,
-		user.Username,
-		user.Email,
-		user.Password)
+		usr.Username,
+		usr.Email,
+		usr.IsActive,
+		usr.PasswordHash,
+		usr.CreatedAt)
 
 	var userID uint64
 	if err := row.Scan(&userID); err != nil {
@@ -42,10 +47,35 @@ func (u *UserRepository) GetById(ctx context.Context, userID uint64) (user.User,
 		&usr.UserID,
 		&usr.Username,
 		&usr.Email,
-		&usr.Password,
+		&usr.IsActive,
+		&usr.PasswordHash,
 		&usr.CreatedAt)
 
 	if err != nil {
+		return usr, err
+	}
+
+	return usr, nil
+}
+
+func (u *UserRepository) GetByEmail(ctx context.Context, email string) (user.User, error) {
+	sql := `SELECT * FROM public.users WHERE email = $1`
+
+	row := u.pool.QueryRow(ctx, sql, email)
+
+	var usr user.User
+	err := row.Scan(
+		&usr.UserID,
+		&usr.Username,
+		&usr.Email,
+		&usr.IsActive,
+		&usr.PasswordHash,
+		&usr.CreatedAt)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return usr, domain.ErrUserNotFound
+		}
 		return usr, err
 	}
 

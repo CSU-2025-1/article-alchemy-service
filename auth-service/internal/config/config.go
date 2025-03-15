@@ -42,11 +42,11 @@ func MustLoad() *Config {
 	var config Config
 
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("error loading .env file")
+		log.Fatalln("error loading .env file")
 	}
 
 	if err := cleanenv.ReadEnv(&config); err != nil {
-		log.Println("error loading .env file")
+		log.Fatalln("error loading .env file")
 	}
 
 	return &config
