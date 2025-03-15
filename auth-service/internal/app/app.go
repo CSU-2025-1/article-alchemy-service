@@ -33,7 +33,7 @@ func New() *App {
 	cfg := config.MustLoad()
 
 	dsn := fmt.Sprintf(
-		"postgres://%v:%v@%v:%v/%v",
+		"postgresql://%v:%v@%v:%v/%v",
 		cfg.Postgres.User,
 		cfg.Postgres.Password,
 		cfg.Postgres.Host,
