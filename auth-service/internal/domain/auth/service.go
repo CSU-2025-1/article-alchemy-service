@@ -70,7 +70,7 @@ func (s *Service) SignUp(ctx context.Context, dto SignUpDTO) (TokenDTO, error) {
 		return TokenDTO{}, fmt.Errorf("error creating user: %w", err)
 	}
 
-	tokens, err := s.genPairTokens(userID, s.jwtConfig.AccessExpire)
+	tokens, err := s.GenPairTokens(userID, s.jwtConfig.AccessExpire)
 	if err != nil {
 		return TokenDTO{}, fmt.Errorf("error generating pair tokens: %w", err)
 	}
@@ -98,7 +98,7 @@ func (s *Service) LogIn(ctx context.Context, dto LogInDTO) (TokenDTO, error) {
 		return TokenDTO{}, domain.ErrWrongPassword
 	}
 
-	tokens, err := s.genPairTokens(usr.UserID, s.jwtConfig.AccessExpire)
+	tokens, err := s.GenPairTokens(usr.UserID, s.jwtConfig.AccessExpire)
 	if err != nil {
 		return TokenDTO{}, fmt.Errorf("error generating pair tokens: %w", err)
 	}
@@ -113,21 +113,6 @@ func (s *Service) LogIn(ctx context.Context, dto LogInDTO) (TokenDTO, error) {
 	}, nil
 }
 
-/*
-	func (s *Service) ValidateToken(ctx context.Context, token string) (uint64, error) {
-		userID, err := s.jwtManager.ParseToken(token)
-		if err != nil {
-			return 0, domain.ErrMissingCredentials
-		}
-
-		if _, err = s.userRepo.GetById(ctx, userID); err != nil {
-			return 0, domain.ErrUserNotFound
-		}
-
-		return userID, nil
-	}
-*/
-
 func (s *Service) RefreshToken(ctx context.Context, refreshToken string) (TokenDTO, error) {
 	userID, err := s.tokenRepo.Get(ctx, refreshToken)
 	if err != nil {
@@ -138,7 +123,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken string) (TokenD
 		return TokenDTO{}, domain.ErrRefreshTokenNotFound
 	}
 
-	tokens, err := s.genPairTokens(userID, s.jwtConfig.AccessExpire)
+	tokens, err := s.GenPairTokens(userID, s.jwtConfig.AccessExpire)
 	if err != nil {
 		return TokenDTO{}, fmt.Errorf("error generating pair tokens: %w", err)
 	}
@@ -165,7 +150,25 @@ func (s *Service) GetUserByInfo(ctx context.Context, userID uint64) (user.User, 
 	return usr, nil
 }
 
-func (s *Service) genPairTokens(userID uint64, ttl time.Duration) (TokenDTO, error) {
+func (s *Service) Logout(ctx context.Context, userID uint64, refreshToken string) error {
+	// userID - рудимент
+	userID, err := s.tokenRepo.Get(ctx, refreshToken)
+	if err != nil {
+		return fmt.Errorf("error getting refresh token: %w", err)
+	}
+
+	if userID == 0 {
+		return domain.ErrRefreshTokenNotFound
+	}
+
+	if err = s.tokenRepo.Del(ctx, refreshToken); err != nil {
+		return fmt.Errorf("error deleting refresh token: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Service) GenPairTokens(userID uint64, ttl time.Duration) (TokenDTO, error) {
 	accessToken, err := s.jwtManager.NewAccessToken(userID, ttl)
 	if err != nil {
 		return TokenDTO{}, err
@@ -178,3 +181,18 @@ func (s *Service) genPairTokens(userID uint64, ttl time.Duration) (TokenDTO, err
 		RefreshToken: refreshToken,
 	}, nil
 }
+
+/*
+	func (s *Service) ValidateToken(ctx context.Context, token string) (uint64, error) {
+		userID, err := s.jwtManager.ParseToken(token)
+		if err != nil {
+			return 0, domain.ErrMissingCredentials
+		}
+
+		if _, err = s.userRepo.GetById(ctx, userID); err != nil {
+			return 0, domain.ErrUserNotFound
+		}
+
+		return userID, nil
+	}
+*/

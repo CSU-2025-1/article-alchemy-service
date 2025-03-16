@@ -78,6 +78,7 @@ func (h *AuthHandler) RefreshToken(ctx context.Context, request *authpb.RefreshT
 		if errors.Is(err, domain.ErrRefreshTokenNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
+
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -108,6 +109,15 @@ func (h *AuthHandler) GetUserInfo(ctx context.Context, request *authpb.GetUserIn
 }
 
 func (h *AuthHandler) Logout(ctx context.Context, request *authpb.LogoutRequest) (*authpb.LogoutResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	if err := h.authService.Logout(ctx, request.UserId, request.RefreshToken); err != nil {
+		if errors.Is(err, domain.ErrRefreshTokenNotFound) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &authpb.LogoutResponse{
+		Message: "Logout Success",
+	}, nil
 }
