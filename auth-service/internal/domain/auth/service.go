@@ -23,6 +23,7 @@ type TokenRepo interface {
 	Set(ctx context.Context, userID uint64, refreshToken string, ttl time.Duration) error
 	Get(ctx context.Context, refreshToken string) (uint64, error)
 	Del(ctx context.Context, refreshToken string) error
+	Refresh(ctx context.Context, userID uint64, oldRefreshToken string, refreshToken string, ttl time.Duration) error
 }
 
 type Service struct {
@@ -142,12 +143,8 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken string) (TokenD
 		return TokenDTO{}, fmt.Errorf("error generating pair tokens: %w", err)
 	}
 
-	if err = s.tokenRepo.Del(ctx, refreshToken); err != nil {
-		return TokenDTO{}, fmt.Errorf("error deleting refresh token: %w", err)
-	}
-
-	if err = s.tokenRepo.Set(ctx, userID, tokens.RefreshToken, s.jwtConfig.RefreshExpire); err != nil {
-		return TokenDTO{}, fmt.Errorf("error setting refresh token: %w", err)
+	if err = s.tokenRepo.Refresh(ctx, userID, refreshToken, tokens.RefreshToken, s.jwtConfig.RefreshExpire); err != nil {
+		return TokenDTO{}, fmt.Errorf("error refreshing token: %w", err)
 	}
 
 	return TokenDTO{

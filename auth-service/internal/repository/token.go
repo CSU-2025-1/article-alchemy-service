@@ -23,7 +23,7 @@ func NewTokenRepository(redis *redis.Client) *TokenRepository {
 
 func (t *TokenRepository) Set(ctx context.Context, userID uint64, refreshToken string, ttl time.Duration) error {
 	key := fmt.Sprintf("%s:%s", t.prefix, refreshToken)
-	return t.redisClient.Set(ctx, key, userID, ttl).Err()
+	return t.redisClient.SetEx(ctx, key, userID, ttl).Err()
 }
 
 func (t *TokenRepository) Get(ctx context.Context, refreshToken string) (uint64, error) {
@@ -48,4 +48,19 @@ func (t *TokenRepository) Get(ctx context.Context, refreshToken string) (uint64,
 func (t *TokenRepository) Del(ctx context.Context, refreshToken string) error {
 	key := fmt.Sprintf("%s:%s", t.prefix, refreshToken)
 	return t.redisClient.Del(ctx, key).Err()
+}
+
+func (t *TokenRepository) Refresh(ctx context.Context, userID uint64, oldRefreshToke string, refreshToken string, ttl time.Duration) error {
+	oldKey := fmt.Sprintf("%s:%s", t.prefix, oldRefreshToke)
+	newKey := fmt.Sprintf("%s:%s", t.prefix, refreshToken)
+
+	pipe := t.redisClient.TxPipeline()
+
+	pipe.Del(ctx, oldKey)
+
+	pipe.SetEx(ctx, newKey, userID, ttl)
+
+	_, err := pipe.Exec(ctx)
+
+	return err
 }
