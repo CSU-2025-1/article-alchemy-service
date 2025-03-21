@@ -37,10 +37,10 @@ func (u *UserRepository) Create(ctx context.Context, usr user.User) (uint64, err
 	return userID, nil
 }
 
-func (u *UserRepository) GetById(ctx context.Context, userID uint64) (user.User, error) {
+func (u *UserRepository) GetById(ctx context.Context, userId uint64) (user.User, error) {
 	sql := `SELECT * FROM public.users WHERE user_id = $1`
 
-	row := u.pool.QueryRow(ctx, sql, userID)
+	row := u.pool.QueryRow(ctx, sql, userId)
 
 	var usr user.User
 	err := row.Scan(

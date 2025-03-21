@@ -15,15 +15,15 @@ import (
 
 type UserRepo interface {
 	Create(ctx context.Context, user user.User) (uint64, error)
-	GetById(ctx context.Context, userID uint64) (user.User, error)
+	GetById(ctx context.Context, userId uint64) (user.User, error)
 	GetByEmail(ctx context.Context, email string) (user.User, error)
 }
 
 type TokenRepo interface {
-	Set(ctx context.Context, userID uint64, refreshToken string, ttl time.Duration) error
+	Set(ctx context.Context, userId uint64, refreshToken string, ttl time.Duration) error
 	Get(ctx context.Context, refreshToken string) (uint64, error)
 	Del(ctx context.Context, refreshToken string) error
-	Refresh(ctx context.Context, userID uint64, oldRefreshToken string, refreshToken string, ttl time.Duration) error
+	Refresh(ctx context.Context, userId uint64, oldRefreshToken string, refreshToken string, ttl time.Duration) error
 }
 
 type Service struct {
@@ -138,8 +138,8 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken string) (TokenD
 	}, nil
 }
 
-func (s *Service) GetUserByInfo(ctx context.Context, userID uint64) (user.User, error) {
-	usr, err := s.userRepo.GetById(ctx, userID)
+func (s *Service) GetUserInfo(ctx context.Context, userId uint64) (user.User, error) {
+	usr, err := s.userRepo.GetById(ctx, userId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return usr, domain.ErrUserNotFound
@@ -150,8 +150,8 @@ func (s *Service) GetUserByInfo(ctx context.Context, userID uint64) (user.User, 
 	return usr, nil
 }
 
-func (s *Service) Logout(ctx context.Context, userID uint64, refreshToken string) error {
-	// userID - рудимент
+// Logout TODO: get access and move its blacklist
+func (s *Service) Logout(ctx context.Context, refreshToken string) error {
 	userID, err := s.tokenRepo.Get(ctx, refreshToken)
 	if err != nil {
 		return fmt.Errorf("error getting refresh token: %w", err)

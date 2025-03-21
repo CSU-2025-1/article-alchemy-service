@@ -11,11 +11,12 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type AuthHandler struct {
-	authpb.UnimplementedAuthServer
+	authpb.UnimplementedAuthServiceServer
 	authService auth.Service
 }
 
@@ -26,7 +27,7 @@ func NewAuthHandler(authService *auth.Service) *AuthHandler {
 }
 
 func (h *AuthHandler) Register(grpcServer *grpc.Server) {
-	authpb.RegisterAuthServer(grpcServer, h)
+	authpb.RegisterAuthServiceServer(grpcServer, h)
 }
 
 func (h *AuthHandler) SignUp(ctx context.Context, request *authpb.RegisterRequest) (*authpb.TokenResponse, error) {
@@ -91,7 +92,8 @@ func (h *AuthHandler) RefreshToken(ctx context.Context, request *authpb.RefreshT
 
 }
 
-func (h *AuthHandler) GetUserInfo(ctx context.Context, request *authpb.GetUserInfoRequest) (*authpb.UserInfoResponse, error) {
+// break
+func (h *AuthHandler) GetUserInfo(ctx context.Context, _ *emptypb.Empty) (*authpb.GetUserInfoResponse, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.Unauthenticated, "metadata is not provided")
@@ -100,7 +102,7 @@ func (h *AuthHandler) GetUserInfo(ctx context.Context, request *authpb.GetUserIn
 	userID := md.Get("userID")
 	fmt.Println(userID)
 
-	usr, err := h.authService.GetUserByInfo(ctx, request.UserId)
+	usr, err := h.authService.GetUserInfo(ctx, 0)
 	if err != nil {
 		if errors.Is(err, domain.ErrUserNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -109,7 +111,7 @@ func (h *AuthHandler) GetUserInfo(ctx context.Context, request *authpb.GetUserIn
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &authpb.UserInfoResponse{
+	return &authpb.GetUserInfoResponse{
 		UserId:    usr.UserID,
 		Username:  usr.Username,
 		Email:     usr.Email,
@@ -119,7 +121,7 @@ func (h *AuthHandler) GetUserInfo(ctx context.Context, request *authpb.GetUserIn
 }
 
 func (h *AuthHandler) Logout(ctx context.Context, request *authpb.LogoutRequest) (*authpb.LogoutResponse, error) {
-	if err := h.authService.Logout(ctx, request.UserId, request.RefreshToken); err != nil {
+	if err := h.authService.Logout(ctx, request.RefreshToken); err != nil {
 		if errors.Is(err, domain.ErrRefreshTokenNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
