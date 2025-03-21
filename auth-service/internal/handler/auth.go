@@ -3,11 +3,13 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/auth"
 	authpb "github.com/tclutin/article-alchemy-service-protos/gen/go/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -90,6 +92,14 @@ func (h *AuthHandler) RefreshToken(ctx context.Context, request *authpb.RefreshT
 }
 
 func (h *AuthHandler) GetUserInfo(ctx context.Context, request *authpb.GetUserInfoRequest) (*authpb.UserInfoResponse, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Errorf(codes.Unauthenticated, "metadata is not provided")
+	}
+
+	userID := md.Get("userID")
+	fmt.Println(userID)
+
 	usr, err := h.authService.GetUserByInfo(ctx, request.UserId)
 	if err != nil {
 		if errors.Is(err, domain.ErrUserNotFound) {
