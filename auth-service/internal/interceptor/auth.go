@@ -7,7 +7,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"log/slog"
 )
 
 type AuthInterceptor struct {
@@ -22,7 +21,6 @@ func NewAuthInterceptor(jwtManager manager.Manager, methods map[string]bool) *Au
 func (a *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		if !a.methods[info.FullMethod] {
-			slog.Info("method", info.FullMethod)
 			return handler(ctx, req)
 		}
 

@@ -3,20 +3,18 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/auth"
-	authpb "github.com/tclutin/article-alchemy-service-protos/gen/go/auth"
+	authv1 "github.com/tclutin/article-alchemy-service-protos/gen/go/auth_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type AuthHandler struct {
-	authpb.UnimplementedAuthServiceServer
+	authv1.UnimplementedAuthServiceServer
 	authService auth.Service
 }
 
@@ -27,10 +25,10 @@ func NewAuthHandler(authService *auth.Service) *AuthHandler {
 }
 
 func (h *AuthHandler) Register(grpcServer *grpc.Server) {
-	authpb.RegisterAuthServiceServer(grpcServer, h)
+	authv1.RegisterAuthServiceServer(grpcServer, h)
 }
 
-func (h *AuthHandler) SignUp(ctx context.Context, request *authpb.RegisterRequest) (*authpb.TokenResponse, error) {
+func (h *AuthHandler) SignUp(ctx context.Context, request *authv1.RegisterRequest) (*authv1.TokenResponse, error) {
 	tokens, err := h.authService.SignUp(ctx, auth.SignUpDTO{
 		Email:    request.Email,
 		Username: request.Username,
@@ -45,13 +43,13 @@ func (h *AuthHandler) SignUp(ctx context.Context, request *authpb.RegisterReques
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &authpb.TokenResponse{
+	return &authv1.TokenResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 	}, nil
 }
 
-func (h *AuthHandler) LogIn(ctx context.Context, request *authpb.LoginRequest) (*authpb.TokenResponse, error) {
+func (h *AuthHandler) LogIn(ctx context.Context, request *authv1.LoginRequest) (*authv1.TokenResponse, error) {
 	tokens, err := h.authService.LogIn(ctx, auth.LogInDTO{
 		Email:    request.Email,
 		Password: request.Password,
@@ -69,13 +67,13 @@ func (h *AuthHandler) LogIn(ctx context.Context, request *authpb.LoginRequest) (
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &authpb.TokenResponse{
+	return &authv1.TokenResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 	}, nil
 }
 
-func (h *AuthHandler) RefreshToken(ctx context.Context, request *authpb.RefreshTokenRequest) (*authpb.TokenResponse, error) {
+func (h *AuthHandler) RefreshToken(ctx context.Context, request *authv1.RefreshTokenRequest) (*authv1.TokenResponse, error) {
 	tokens, err := h.authService.RefreshToken(ctx, request.RefreshToken)
 	if err != nil {
 		if errors.Is(err, domain.ErrRefreshTokenNotFound) {
@@ -85,24 +83,20 @@ func (h *AuthHandler) RefreshToken(ctx context.Context, request *authpb.RefreshT
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &authpb.TokenResponse{
+	return &authv1.TokenResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 	}, nil
 
 }
 
-// break
-func (h *AuthHandler) GetUserInfo(ctx context.Context, _ *emptypb.Empty) (*authpb.GetUserInfoResponse, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, status.Errorf(codes.Unauthenticated, "metadata is not provided")
+func (h *AuthHandler) GetUserInfo(ctx context.Context, _ *emptypb.Empty) (*authv1.GetUserInfoResponse, error) {
+	userId := ctx.Value("userId")
+	if userId == nil {
+		return nil, status.Error(codes.PermissionDenied, "User not found in context")
 	}
 
-	userID := md.Get("userID")
-	fmt.Println(userID)
-
-	usr, err := h.authService.GetUserInfo(ctx, 0)
+	usr, err := h.authService.GetUserInfo(ctx, userId.(uint64))
 	if err != nil {
 		if errors.Is(err, domain.ErrUserNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -111,7 +105,7 @@ func (h *AuthHandler) GetUserInfo(ctx context.Context, _ *emptypb.Empty) (*authp
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &authpb.GetUserInfoResponse{
+	return &authv1.GetUserInfoResponse{
 		UserId:    usr.UserID,
 		Username:  usr.Username,
 		Email:     usr.Email,
@@ -120,7 +114,7 @@ func (h *AuthHandler) GetUserInfo(ctx context.Context, _ *emptypb.Empty) (*authp
 	}, nil
 }
 
-func (h *AuthHandler) Logout(ctx context.Context, request *authpb.LogoutRequest) (*authpb.LogoutResponse, error) {
+func (h *AuthHandler) Logout(ctx context.Context, request *authv1.LogoutRequest) (*authv1.LogoutResponse, error) {
 	if err := h.authService.Logout(ctx, request.RefreshToken); err != nil {
 		if errors.Is(err, domain.ErrRefreshTokenNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -129,7 +123,7 @@ func (h *AuthHandler) Logout(ctx context.Context, request *authpb.LogoutRequest)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &authpb.LogoutResponse{
+	return &authv1.LogoutResponse{
 		Message: "Logout Success",
 	}, nil
 }

@@ -181,18 +181,3 @@ func (s *Service) GenPairTokens(userID uint64, ttl time.Duration) (TokenDTO, err
 		RefreshToken: refreshToken,
 	}, nil
 }
-
-/*
-	func (s *Service) ValidateToken(ctx context.Context, token string) (uint64, error) {
-		userID, err := s.jwtManager.ParseToken(token)
-		if err != nil {
-			return 0, domain.ErrMissingCredentials
-		}
-
-		if _, err = s.userRepo.GetById(ctx, userID); err != nil {
-			return 0, domain.ErrUserNotFound
-		}
-
-		return userID, nil
-	}
-*/

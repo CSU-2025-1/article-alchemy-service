@@ -13,7 +13,7 @@ import (
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/jwt/manager"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/migrator"
 	"github.com/jackc/pgx/v5/pgxpool"
-	authpb "github.com/tclutin/article-alchemy-service-protos/gen/go/auth"
+	authv1 "github.com/tclutin/article-alchemy-service-protos/gen/go/auth_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -59,14 +59,17 @@ func New() *App {
 	authHandler := handler.NewAuthHandler(authService)
 
 	authInterceptor := interceptor.NewAuthInterceptor(jwtManager, map[string]bool{
-		authpb.AuthService_SignUp_FullMethodName:       false,
-		authpb.AuthService_LogIn_FullMethodName:        false,
-		authpb.AuthService_RefreshToken_FullMethodName: false,
-		authpb.AuthService_Logout_FullMethodName:       true,
-		authpb.AuthService_GetUserInfo_FullMethodName:  true,
+		authv1.AuthService_SignUp_FullMethodName:       false,
+		authv1.AuthService_LogIn_FullMethodName:        false,
+		authv1.AuthService_RefreshToken_FullMethodName: false,
+		authv1.AuthService_Logout_FullMethodName:       true,
+		authv1.AuthService_GetUserInfo_FullMethodName:  true,
 	})
 
-	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(authInterceptor.Unary()), grpc.Creds(insecure.NewCredentials()))
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			authInterceptor.Unary(),
+			interceptor.ValidateInterceptor), grpc.Creds(insecure.NewCredentials()))
 
 	authHandler.Register(grpcServer)
 
