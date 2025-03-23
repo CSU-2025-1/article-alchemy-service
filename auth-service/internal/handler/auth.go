@@ -2,8 +2,7 @@ package handler
 
 import (
 	"context"
-	"errors"
-	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain"
+	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/conventer"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/auth"
 	authv1 "github.com/tclutin/article-alchemy-service-protos/gen/go/auth_v1"
 	"google.golang.org/grpc"
@@ -36,11 +35,7 @@ func (h *AuthHandler) SignUp(ctx context.Context, request *authv1.RegisterReques
 	})
 
 	if err != nil {
-		if errors.Is(err, domain.ErrUserAlreadyExists) {
-			return nil, status.Error(codes.AlreadyExists, err.Error())
-		}
-
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, conventer.ConvertErrorToGRPCStatus(err)
 	}
 
 	return &authv1.TokenResponse{
@@ -56,15 +51,7 @@ func (h *AuthHandler) LogIn(ctx context.Context, request *authv1.LoginRequest) (
 	})
 
 	if err != nil {
-		if errors.Is(err, domain.ErrUserNotFound) {
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
-
-		if errors.Is(err, domain.ErrWrongPassword) {
-			return nil, status.Error(codes.Unauthenticated, err.Error())
-		}
-
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, conventer.ConvertErrorToGRPCStatus(err)
 	}
 
 	return &authv1.TokenResponse{
@@ -75,12 +62,9 @@ func (h *AuthHandler) LogIn(ctx context.Context, request *authv1.LoginRequest) (
 
 func (h *AuthHandler) RefreshToken(ctx context.Context, request *authv1.RefreshTokenRequest) (*authv1.TokenResponse, error) {
 	tokens, err := h.authService.RefreshToken(ctx, request.RefreshToken)
-	if err != nil {
-		if errors.Is(err, domain.ErrRefreshTokenNotFound) {
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
 
-		return nil, status.Error(codes.Internal, err.Error())
+	if err != nil {
+		return nil, conventer.ConvertErrorToGRPCStatus(err)
 	}
 
 	return &authv1.TokenResponse{
@@ -97,12 +81,9 @@ func (h *AuthHandler) GetUserInfo(ctx context.Context, _ *emptypb.Empty) (*authv
 	}
 
 	usr, err := h.authService.GetUserInfo(ctx, userId.(uint64))
-	if err != nil {
-		if errors.Is(err, domain.ErrUserNotFound) {
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
 
-		return nil, status.Error(codes.Internal, err.Error())
+	if err != nil {
+		return nil, conventer.ConvertErrorToGRPCStatus(err)
 	}
 
 	return &authv1.GetUserInfoResponse{
@@ -116,11 +97,7 @@ func (h *AuthHandler) GetUserInfo(ctx context.Context, _ *emptypb.Empty) (*authv
 
 func (h *AuthHandler) Logout(ctx context.Context, request *authv1.LogoutRequest) (*authv1.LogoutResponse, error) {
 	if err := h.authService.Logout(ctx, request.RefreshToken); err != nil {
-		if errors.Is(err, domain.ErrRefreshTokenNotFound) {
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
-
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, conventer.ConvertErrorToGRPCStatus(err)
 	}
 
 	return &authv1.LogoutResponse{
