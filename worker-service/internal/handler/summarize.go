@@ -32,5 +32,9 @@ func SummarizeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(models.SummaryResponse{Summary: summary})
+	err = json.NewEncoder(w).Encode(models.SummaryResponse{Summary: summary})
+	if err != nil {
+		http.Error(w, "Failed to encode JSON response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

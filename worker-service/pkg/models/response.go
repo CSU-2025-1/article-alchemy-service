@@ -6,5 +6,10 @@ type YandexResponse struct {
 }
 
 type SummaryResponse struct {
-	Summary string `json:"summary"`
+	Summary []Chapter `json:"summary"`
+}
+
+type Chapter struct {
+	Title  string   `json:"title"`
+	Points []string `json:"points"`
 }

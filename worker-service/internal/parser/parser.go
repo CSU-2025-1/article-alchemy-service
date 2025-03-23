@@ -1,32 +1,67 @@
 package parser
 
 import (
+	"article-alchemy-service/pkg/models"
+	"encoding/json"
+	"log"
 	"net/http"
+	"strings"
+	"unicode"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-func ParseSummary(url string) (string, error) {
+func ParseSummary(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	var summaryText string
+	var chapters []models.Chapter
+
 	doc.Find("div.chapter-wrapper").Each(func(i int, chapter *goquery.Selection) {
-		chapterTitle := chapter.Find("h2").Text()
-		summaryText += chapterTitle
+		chapterTitle := cleanText(chapter.Find("h2").Text())
+		var points []string
 
 		chapter.Find("p.thesis-text").Each(func(j int, thesis *goquery.Selection) {
-			summaryText += thesis.Text()
+			cleanedText := cleanText(thesis.Text())
+			points = append(points, cleanedText)
+		})
+
+		chapters = append(chapters, models.Chapter{
+			Title:  chapterTitle,
+			Points: points,
 		})
 	})
 
-	return summaryText, nil
+	jsonData, err := json.Marshal(chapters)
+	if err != nil {
+		log.Printf("Error converting to JSON: %v", err)
+		return nil, err
+	}
+
+	return jsonData, nil
+}
+
+func cleanText(text string) string {
+	text = strings.ReplaceAll(text, "\u2009", "")
+	text = strings.ReplaceAll(text, "\u200b", "")
+
+	text = strings.TrimLeft(text, "• ")
+	text = strings.TrimSpace(text)
+
+	var cleanedText strings.Builder
+	for _, r := range text {
+		if unicode.IsGraphic(r) && !unicode.IsControl(r) {
+			cleanedText.WriteRune(r)
+		}
+	}
+
+	return cleanedText.String()
 }

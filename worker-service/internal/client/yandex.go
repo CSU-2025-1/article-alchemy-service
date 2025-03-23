@@ -11,10 +11,9 @@ import (
 	"article-alchemy-service/pkg/models"
 )
 
-const yandexAPI = "https://300.ya.ru/api/sharing-url"
-
 func GetYandexSharingURL(articleURL string) (string, error) {
 	yandexToken := os.Getenv("YANDEX_TOKEN")
+	yandexAPI := os.Getenv("YANDEX_API")
 	if yandexToken == "" {
 		log.Println("Warning: YANDEX_TOKEN is not set!")
 		return "", errors.New("missing YANDEX_TOKEN")
