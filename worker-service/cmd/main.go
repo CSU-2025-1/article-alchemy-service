@@ -2,9 +2,8 @@ package main
 
 import (
 	"log"
-	"net/http"
 
-	"article-alchemy-service/internal/handler"
+	"article-alchemy-service/internal/worker"
 
 	"github.com/joho/godotenv"
 )
@@ -17,7 +16,6 @@ func init() {
 }
 
 func main() {
-	mux := http.NewServeMux()
-	handler.RegisterRoutes(mux)
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Println("Start worker...")
+	worker.StartWorker()
 }

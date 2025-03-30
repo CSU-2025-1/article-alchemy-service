@@ -14,6 +14,7 @@ import (
 func GetYandexSharingURL(articleURL string) (string, error) {
 	yandexToken := os.Getenv("YANDEX_TOKEN")
 	yandexAPI := os.Getenv("YANDEX_API")
+	log.Println(yandexToken, yandexAPI)
 	if yandexToken == "" {
 		log.Println("Warning: YANDEX_TOKEN is not set!")
 		return "", errors.New("missing YANDEX_TOKEN")
