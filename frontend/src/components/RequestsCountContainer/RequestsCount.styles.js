@@ -1,6 +1,5 @@
 import styled from "styled-components";
 
-
 export const RequestsCountContainer = styled.div`
     width: 230rem;
     border-radius: 50px;
