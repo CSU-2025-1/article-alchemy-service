@@ -1,4 +1,4 @@
-package conventer
+package converter
 
 import (
 	"errors"

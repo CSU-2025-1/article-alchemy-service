@@ -1,8 +1,10 @@
-package handler
+package grpc
 
 import (
 	"context"
-	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/conventer"
+	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/converter"
+	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain"
+
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/auth"
 	authv1 "github.com/tclutin/article-alchemy-service-protos/gen/go/auth_v1"
 	"google.golang.org/grpc"
@@ -14,12 +16,12 @@ import (
 
 type AuthHandler struct {
 	authv1.UnimplementedAuthServiceServer
-	authService auth.Service
+	authService domain.AuthService
 }
 
-func NewAuthHandler(authService *auth.Service) *AuthHandler {
+func NewAuthHandler(authService domain.AuthService) *AuthHandler {
 	return &AuthHandler{
-		authService: *authService,
+		authService: authService,
 	}
 }
 
@@ -35,7 +37,7 @@ func (h *AuthHandler) SignUp(ctx context.Context, request *authv1.RegisterReques
 	})
 
 	if err != nil {
-		return nil, conventer.ConvertErrorToGRPCStatus(err)
+		return nil, converter.ConvertErrorToGRPCStatus(err)
 	}
 
 	return &authv1.TokenResponse{
@@ -51,7 +53,7 @@ func (h *AuthHandler) LogIn(ctx context.Context, request *authv1.LoginRequest) (
 	})
 
 	if err != nil {
-		return nil, conventer.ConvertErrorToGRPCStatus(err)
+		return nil, converter.ConvertErrorToGRPCStatus(err)
 	}
 
 	return &authv1.TokenResponse{
@@ -64,7 +66,7 @@ func (h *AuthHandler) RefreshToken(ctx context.Context, request *authv1.RefreshT
 	tokens, err := h.authService.RefreshToken(ctx, request.RefreshToken)
 
 	if err != nil {
-		return nil, conventer.ConvertErrorToGRPCStatus(err)
+		return nil, converter.ConvertErrorToGRPCStatus(err)
 	}
 
 	return &authv1.TokenResponse{
@@ -83,7 +85,7 @@ func (h *AuthHandler) GetUserInfo(ctx context.Context, _ *emptypb.Empty) (*authv
 	usr, err := h.authService.GetUserInfo(ctx, userId.(uint64))
 
 	if err != nil {
-		return nil, conventer.ConvertErrorToGRPCStatus(err)
+		return nil, converter.ConvertErrorToGRPCStatus(err)
 	}
 
 	return &authv1.GetUserInfoResponse{
@@ -97,7 +99,7 @@ func (h *AuthHandler) GetUserInfo(ctx context.Context, _ *emptypb.Empty) (*authv
 
 func (h *AuthHandler) Logout(ctx context.Context, request *authv1.LogoutRequest) (*authv1.LogoutResponse, error) {
 	if err := h.authService.Logout(ctx, request.RefreshToken); err != nil {
-		return nil, conventer.ConvertErrorToGRPCStatus(err)
+		return nil, converter.ConvertErrorToGRPCStatus(err)
 	}
 
 	return &authv1.LogoutResponse{

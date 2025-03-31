@@ -12,7 +12,6 @@ services:
       - "5432:5432"
     networks:
       - backend
-
   redis:
     restart: always
     image: redis:7.4.2-alpine

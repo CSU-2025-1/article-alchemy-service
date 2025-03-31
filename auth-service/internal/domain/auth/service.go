@@ -7,38 +7,26 @@ import (
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/config"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/user"
+	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/repository"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/hasher"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/jwt/manager"
 	"github.com/jackc/pgx/v5"
 	"time"
 )
 
-type UserRepo interface {
-	Create(ctx context.Context, user user.User) (uint64, error)
-	GetById(ctx context.Context, userId uint64) (user.User, error)
-	GetByEmail(ctx context.Context, email string) (user.User, error)
-}
-
-type TokenRepo interface {
-	Set(ctx context.Context, userId uint64, refreshToken string, ttl time.Duration) error
-	Get(ctx context.Context, refreshToken string) (uint64, error)
-	Del(ctx context.Context, refreshToken string) error
-	Refresh(ctx context.Context, userId uint64, oldRefreshToken string, refreshToken string, ttl time.Duration) error
-}
-
 type Service struct {
 	jwtConfig  config.JWT
 	jwtManager manager.Manager
-	userRepo   UserRepo
-	tokenRepo  TokenRepo
+	userRepo   repository.UserRepository
+	tokenRepo  repository.TokenRepository
 }
 
 func NewService(
 	jwtConfig config.JWT,
 	jwtManager manager.Manager,
-	userRepo UserRepo,
-	tokenRepo TokenRepo,
-) *Service {
+	userRepo repository.UserRepository,
+	tokenRepo repository.TokenRepository,
+) domain.AuthService {
 	return &Service{
 		jwtConfig:  jwtConfig,
 		jwtManager: jwtManager,

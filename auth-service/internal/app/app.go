@@ -4,22 +4,20 @@ import (
 	"context"
 	"fmt"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/config"
-	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/auth"
-	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/handler"
+	authService "github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/auth"
+	grpcHandler "github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/handler/grpc"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/interceptor"
-	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/repository"
+	tokenRepository "github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/repository/token"
+	userRepository "github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/repository/user"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/client/postgresql"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/client/redis"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/jwt/manager"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/migrator"
 	"github.com/jackc/pgx/v5/pgxpool"
-	authv1 "github.com/tclutin/article-alchemy-service-protos/gen/go/auth_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
-	"net/http"
-	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -50,26 +48,21 @@ func New() *App {
 
 	jwtManager := manager.MustLoadTokenManager(cfg.JWT.Secret)
 
-	userRepo := repository.NewUserRepository(postgresClient)
+	userRepo := userRepository.NewUserRepository(postgresClient)
 
-	tokenRepo := repository.NewTokenRepository(redisClient)
+	tokenRepo := tokenRepository.NewTokenRepository(redisClient)
 
-	authService := auth.NewService(cfg.JWT, jwtManager, userRepo, tokenRepo)
+	authSrv := authService.NewService(cfg.JWT, jwtManager, userRepo, tokenRepo)
 
-	authHandler := handler.NewAuthHandler(authService)
-
-	authInterceptor := interceptor.NewAuthInterceptor(jwtManager, map[string]bool{
-		authv1.AuthService_SignUp_FullMethodName:       false,
-		authv1.AuthService_LogIn_FullMethodName:        false,
-		authv1.AuthService_RefreshToken_FullMethodName: false,
-		authv1.AuthService_Logout_FullMethodName:       true,
-		authv1.AuthService_GetUserInfo_FullMethodName:  true,
-	})
+	authHandler := grpcHandler.NewAuthHandler(authSrv)
 
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			authInterceptor.Unary(),
-			interceptor.ValidateInterceptor), grpc.Creds(insecure.NewCredentials()))
+			interceptor.NewAuthInterceptor(jwtManager).Unary(),
+			interceptor.ValidateInterceptor,
+		),
+		grpc.Creds(insecure.NewCredentials()),
+	)
 
 	authHandler.Register(grpcServer)
 
@@ -85,13 +78,6 @@ func (a *App) Run() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-
-	go func() {
-		log.Println("pprof running on :6060")
-		if err := http.ListenAndServe("localhost:1010", nil); err != nil {
-			log.Printf("pprof failed: %v", err)
-		}
-	}()
 
 	go func() {
 		if err = a.grpcServer.Serve(listener); err != nil {
