@@ -1,4 +1,15 @@
 services:
+  auth-service:
+    restart: always
+    build: ./auth-service
+    ports:
+      - "9091:9091"
+    depends_on:
+      - db-auth-service
+      - redis
+    networks:
+      - backend
+
   db-auth-service:
     restart: always
     image: postgres:alpine3.21
@@ -12,6 +23,7 @@ services:
       - "5432:5432"
     networks:
       - backend
+
   redis:
     restart: always
     image: redis:7.4.2-alpine
