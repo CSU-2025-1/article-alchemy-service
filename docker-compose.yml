@@ -1,5 +1,5 @@
 services:
-  db:
+  db-content-service:
     restart: always
     image: postgres:alpine3.21
     environment:
@@ -9,7 +9,7 @@ services:
     volumes:
       - ./data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
     networks:
       - backend
 
