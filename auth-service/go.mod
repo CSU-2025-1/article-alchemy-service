@@ -10,7 +10,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/pressly/goose/v3 v3.24.1
 	github.com/redis/go-redis/v9 v9.7.3
-	github.com/tclutin/article-alchemy-service-protos v0.0.0-20250323143431-c29494c86a3e
+	github.com/tclutin/article-alchemy-service-protos v0.0.0-20250331205152-04e1b765e7b4
 	golang.org/x/crypto v0.36.0
 	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.5

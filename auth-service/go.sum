@@ -74,6 +74,8 @@ github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOf
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/tclutin/article-alchemy-service-protos v0.0.0-20250323143431-c29494c86a3e h1:XQeqIFGXChcE2NKNUtaRG7ezoExm5GkvYftgZpLWRWg=
 github.com/tclutin/article-alchemy-service-protos v0.0.0-20250323143431-c29494c86a3e/go.mod h1:gUEUKAXw0j9Day8GpOrsQ8w0/GLd5lpnwnGhMPaZ5kw=
+github.com/tclutin/article-alchemy-service-protos v0.0.0-20250331205152-04e1b765e7b4 h1:ZIQP4hvA0UbnZFznWwICCDR0fXk9qWWYHulXdYgkXzI=
+github.com/tclutin/article-alchemy-service-protos v0.0.0-20250331205152-04e1b765e7b4/go.mod h1:LzBpFjW4BBwsvxKIjVg9rRS2CbNrJOiD7IRM5SlzAKc=
 go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJySYA=
 go.opentelemetry.io/auto/sdk v1.1.0/go.mod h1:3wSPjt5PWp2RhlCcmmOial7AvC4DQqZb7a7wCow3W8A=
 go.opentelemetry.io/otel v1.34.0 h1:zRLXxLCgL1WyKsPVrgbSdMN4c0FMkDAskSTQP+0hdUY=
