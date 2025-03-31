@@ -12,16 +12,15 @@ const ButtonVariants = {
     `,
 };
 
-
 export const ButtonContainer = styled.button`
     display: flex;
     align-items: center;
     justify-content: center;
-    width: auto;
+    width: max-content;
     background-color:  ${({ backgroundColor }) => backgroundColor || 'var(--color-grape)'};
     color: ${({ color }) => color || 'white'};
     font-size: 4rem;
     border: none;
     cursor: pointer;
     ${({ variant }) => ButtonVariants[variant]};
-`
+`;

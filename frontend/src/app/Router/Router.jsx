@@ -1,20 +1,25 @@
 import {
     createBrowserRouter,
     RouterProvider,
-    Navigate,
 } from 'react-router-dom';
 
 import { ROUTES } from './routes';
+import { AuthPage } from "../../pages/AuthPage/AuthPage.jsx";
 import {SummaryPage} from "@/pages/SummaryPage/index.js";
+import {HistoryPage} from "@/pages/HistoryPage/HistoryPage.jsx";
 
 const router = createBrowserRouter([
     {
         path: ROUTES.root,
-        element: <Navigate to="/create-summary" replace />,
+        element: <SummaryPage />,
     },
     {
-        path: ROUTES.createSummary,
-        element: <SummaryPage/>,
+        path: ROUTES.auth,
+        element: <AuthPage />,
+    },
+    {
+        path: ROUTES.history,
+        element: <HistoryPage />,
     },
 ]);
 

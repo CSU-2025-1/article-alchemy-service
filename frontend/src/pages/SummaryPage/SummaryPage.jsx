@@ -1,18 +1,29 @@
-import { Button } from '@/components/Button';
 import { SearchInput } from '@/components/SearchInput';
 import {NavBar} from "./components/NavBar";
-import * as SC from './SummaryPage.styles'
-import {AuthForm} from "@/components/AuthForm/index.js";
+import * as SC from './SummaryPage.styles';
+import {Subtitle, Title} from "./SummaryPage.styles";
+import {AnswerContainer} from "@/components/AnswerContainer/AnswerContainer.jsx";
+import {RequestsCount} from "@/components/RequestsCountContainer/RequestsCount.jsx";
+import {NavBarLinks} from "@/pages/SummaryPage/components/NavBarLinks/NavBarLinks.jsx";
+
 export const SummaryPage = () => {
     return (
         <SC.Wrapper>
             <NavBar>
-                <Button backgroundColor={'white'} color={'var(--color-grape)'} content={'Вход'}></Button>
-                <Button backgroundColor={'var(--color-grape)'} color={'white'} content={'Регистрация'}></Button>
+                <NavBarLinks />
             </NavBar>
             <SC.SummaryContainer>
-                <SearchInput></SearchInput>
-                <AuthForm></AuthForm>
+                <Title>
+                    Создать краткий пересказ статьи прямо сейчас
+                </Title>
+                <Subtitle>
+                    Введите ссылку на статью и получите краткий пересказ
+                </Subtitle>
+
+                <SearchInput />
+                <AnswerContainer />
+                <RequestsCount />
+
             </SC.SummaryContainer>
         </SC.Wrapper>
 

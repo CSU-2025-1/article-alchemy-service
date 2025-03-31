@@ -1,4 +1,4 @@
-import * as SC from './Button.styles'
+import * as SC from './Button.styles';
 
 export const Button = ({ backgroundColor, color, content, handleClick, variant='primaryButton' }) => {
     return (

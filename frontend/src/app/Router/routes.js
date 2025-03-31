@@ -1,4 +1,5 @@
 export const ROUTES = {
     root: '/',
-    createSummary: '/create-summary'
+    auth: '/auth',
+    history: '/history'
 };

@@ -17,11 +17,22 @@ export const GlobalStyle = createGlobalStyle`
 
   html, body, #root {
     width: 100%;
-    height: 100%;
+    height: max-content;
   }
 
   body {
     font-family: 'Inter', sans-serif;
     background: #151718;
+    padding-bottom: 40px;
+
+    @keyframes gradient {
+      100% {
+        background-position: 200% 200%;
+      }
+    }
+  }
+  
+  a {
+    text-decoration: none;
   }
 `;
