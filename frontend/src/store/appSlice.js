@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
     isLoggedIn: true,
     isLogin: false,
-    freeRequestsCount: localStorage.getItem("freeCount") ?? 5,
+    freeRequestsCount: parseInt(localStorage.getItem("freeCount")) ?? 5,
     answerContent: null,
     profileName: 'кто прочитал тому счастья здоровья'
 };

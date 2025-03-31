@@ -14,7 +14,8 @@ export const SearchInput = ( { backgroundColorButton='var(--color-grape)', color
                     color={colorButton}
                     content={contentButton}
                     handleClick={() => {
-                        if(freeRequestsCount === 0) {
+                        if(freeRequestsCount === 0 && !isLoggedIn) {
+                            dispatch(setAnswerContent('Нет ответа'));
                             return;
                         }
                         console.log('запрос пересказа');
