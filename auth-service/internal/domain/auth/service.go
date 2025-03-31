@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/config"
-	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain"
+	domainErr "github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/errors"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/user"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/repository"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/pkg/hasher"
@@ -26,7 +26,7 @@ func NewService(
 	jwtManager manager.Manager,
 	userRepo repository.UserRepository,
 	tokenRepo repository.TokenRepository,
-) domain.AuthService {
+) *Service {
 	return &Service{
 		jwtConfig:  jwtConfig,
 		jwtManager: jwtManager,
@@ -38,7 +38,7 @@ func NewService(
 func (s *Service) SignUp(ctx context.Context, dto SignUpDTO) (TokenDTO, error) {
 	_, err := s.userRepo.GetByEmail(ctx, dto.Email)
 	if err == nil {
-		return TokenDTO{}, domain.ErrUserAlreadyExists
+		return TokenDTO{}, domainErr.ErrUserAlreadyExists
 	}
 
 	hash, err := hasher.NewBcryptHash(dto.Password)
@@ -76,14 +76,14 @@ func (s *Service) SignUp(ctx context.Context, dto SignUpDTO) (TokenDTO, error) {
 func (s *Service) LogIn(ctx context.Context, dto LogInDTO) (TokenDTO, error) {
 	usr, err := s.userRepo.GetByEmail(ctx, dto.Email)
 	if err != nil {
-		if errors.Is(err, domain.ErrUserNotFound) {
+		if errors.Is(err, domainErr.ErrUserNotFound) {
 			return TokenDTO{}, err
 		}
 		return TokenDTO{}, fmt.Errorf("error getting user: %w", err)
 	}
 
 	if !hasher.CompareBcryptHash(usr.PasswordHash, dto.Password) {
-		return TokenDTO{}, domain.ErrWrongPassword
+		return TokenDTO{}, domainErr.ErrWrongPassword
 	}
 
 	tokens, err := s.GenPairTokens(usr.UserID, s.jwtConfig.AccessExpire)
@@ -108,7 +108,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken string) (TokenD
 	}
 
 	if userID == 0 {
-		return TokenDTO{}, domain.ErrRefreshTokenNotFound
+		return TokenDTO{}, domainErr.ErrRefreshTokenNotFound
 	}
 
 	tokens, err := s.GenPairTokens(userID, s.jwtConfig.AccessExpire)
@@ -130,7 +130,7 @@ func (s *Service) GetUserInfo(ctx context.Context, userId uint64) (user.User, er
 	usr, err := s.userRepo.GetById(ctx, userId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return usr, domain.ErrUserNotFound
+			return usr, domainErr.ErrUserNotFound
 		}
 		return usr, fmt.Errorf("error getting user: %w", err)
 	}
@@ -146,7 +146,7 @@ func (s *Service) Logout(ctx context.Context, refreshToken string) error {
 	}
 
 	if userID == 0 {
-		return domain.ErrRefreshTokenNotFound
+		return domainErr.ErrRefreshTokenNotFound
 	}
 
 	if err = s.tokenRepo.Del(ctx, refreshToken); err != nil {

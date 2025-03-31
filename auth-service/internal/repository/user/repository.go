@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 	"errors"
-	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain"
+	domainErr "github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/errors"
 	"github.com/CSU-2025-1/article-alchemy-service/auth_service/internal/domain/user"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -74,7 +74,7 @@ func (u *UserRepository) GetByEmail(ctx context.Context, email string) (user.Use
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return usr, domain.ErrUserNotFound
+			return usr, domainErr.ErrUserNotFound
 		}
 		return usr, err
 	}
