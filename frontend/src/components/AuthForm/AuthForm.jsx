@@ -3,11 +3,15 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import * as SC from './AuthForm.styles';
 import {useDispatch, useSelector} from "react-redux";
-import {setIsLogin} from "@/store/appSlice.js";
+import {setIsLoggedIn, setIsLogin, setProfileName} from "@/store/appSlice.js";
+import {getUserInfoRequest, loginRequest, registerRequest} from "@/store/api/api.js";
+import {useNavigate} from "react-router-dom";
+import {ROUTES} from "@/app/Router/routes.js";
 
 export const AuthForm = () => {
     const isLogin = useSelector(state => state.isLogin);
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
         username: '',
@@ -15,19 +19,23 @@ export const AuthForm = () => {
         confirmPassword: ''
     });
 
+    const setToken = (token) => {
+        localStorage.setItem('accessToken', token.accessToken);
+        localStorage.setItem('refreshToken', token.refreshToken);
+
+        dispatch(setIsLoggedIn(true));
+        dispatch(setProfileName(formData.username));
+
+        navigate(ROUTES.root);
+    };
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(isLogin);
-        if(isLogin) {
-
-            console.log('запрос на логин');
-            return;
-        }
 
         let errorMessage = '';
 
@@ -39,21 +47,38 @@ export const AuthForm = () => {
             errorMessage += 'Неверный формат почты.\n';
         }
 
-        if (formData.username.length < 3 || formData.username.length > 50) {
-            errorMessage += 'Длина логина должна быть от 3 до 50.\n';
-        }
-        const usernameRegex = /^[a-zA-Z0-9_]+$/;
-        if (!usernameRegex.test(formData.username)) {
-            errorMessage += 'Неверный формат логина. Логин может содержать латинские буквы, цифры и нижние подчёркивания.\n';
-        }
-
-
         if (formData.password.length < 8 || formData.password.length > 64) {
             errorMessage += 'Длина пароля должна быть от 8 до 64.\n';
         }
         const passwordRegex = /^[A-Za-z0-9#?!@$%^&*-]+$/;
         if (!passwordRegex.test(formData.password)) {
             errorMessage += 'Неверный формат пароля. Пароль может содержать латинские буквы, цифры и специальные символы #?!@$%^&*-\n';
+        }
+
+        if(errorMessage.length > 0) {
+            alert(errorMessage);
+            return;
+        }
+
+        if(isLogin) {
+            const token = await loginRequest(formData.email, formData.password);
+            if (token) {
+                setToken(token);
+                const userInfo = await getUserInfoRequest();
+                dispatch(setProfileName(userInfo.username));
+            }
+            else {
+                alert('Ошибка при входе.');
+            }
+            return;
+        }
+
+        if (formData.username.length < 3 || formData.username.length > 50) {
+            errorMessage += 'Длина логина должна быть от 3 до 50.\n';
+        }
+        const usernameRegex = /^[a-zA-Z0-9_]+$/;
+        if (!usernameRegex.test(formData.username)) {
+            errorMessage += 'Неверный формат логина. Логин может содержать латинские буквы, цифры и нижние подчёркивания.\n';
         }
 
         if (formData.password !== formData.confirmPassword) {
@@ -64,7 +89,14 @@ export const AuthForm = () => {
             alert(errorMessage);
             return;
         }
-        console.log('запрос на регу');
+
+        const token = await registerRequest(formData.email, formData.username, formData.password);
+        if (token) {
+            setToken(token);
+        }
+        else {
+            alert('Ошибка при регистрации.');
+        }
     };
 
     return (

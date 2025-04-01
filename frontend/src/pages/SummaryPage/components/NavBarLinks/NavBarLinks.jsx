@@ -3,6 +3,7 @@ import {setAnswerContent, setIsLoggedIn, setIsLogin, setProfileName} from "@/sto
 import {Button} from "@/components/Button/index.js";
 import {useDispatch, useSelector} from "react-redux";
 import {ROUTES} from "@/app/Router/routes.js";
+import {getUserInfoRequest, logoutRequest} from "@/store/api/api.js";
 
 export const NavBarLinks = () => {
     const dispatch = useDispatch();
@@ -21,12 +22,18 @@ export const NavBarLinks = () => {
                     <Button backgroundColor={'white'}
                             color={'var(--color-grape)'}
                             content={'Выйти'}
-                            handleClick={() => {
-                                // ...
-                                dispatch(setIsLoggedIn(false));
-                                dispatch(setAnswerContent(null));
-                                dispatch(setIsLogin(true));
-                                dispatch(setProfileName(''));
+                            handleClick={async () => {
+
+                                const response = await logoutRequest();
+                                console.log('ответ с серва при разлогине', response);
+                                if(response){
+                                    localStorage.removeItem('refreshToken');
+                                    localStorage.removeItem('accessToken');
+                                    dispatch(setIsLoggedIn(false));
+                                    dispatch(setAnswerContent(null));
+                                    dispatch(setIsLogin(true));
+                                    dispatch(setProfileName(''));
+                                }
                             }}>
                     </Button>
                 </Link>
