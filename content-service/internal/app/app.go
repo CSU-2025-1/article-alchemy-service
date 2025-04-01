@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/internal/config"
+	grpcHandler "github.com/CSU-2025-1/article-alchemy-service/content_service/internal/handler/grpc"
+	"github.com/CSU-2025-1/article-alchemy-service/content_service/internal/interceptor"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/client/postgresql"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/client/redis"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/jwt/manager"
@@ -42,9 +44,19 @@ func New() *App {
 
 	migrator.Migrate(postgresClient)
 
-	_ = manager.MustLoadTokenManager(cfg.JWT.Secret)
+	jwtManager := manager.MustLoadTokenManager(cfg.JWT.Secret)
 
-	grpcServer := grpc.NewServer(grpc.Creds(insecure.NewCredentials()))
+	contentHandler := grpcHandler.NewContentHandler()
+
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			interceptor.NewAuthInterceptor(jwtManager).Unary(),
+			interceptor.ValidateInterceptor,
+		),
+		grpc.Creds(insecure.NewCredentials()),
+	)
+
+	contentHandler.Register(grpcServer)
 
 	return &App{
 		pool:       postgresClient,
