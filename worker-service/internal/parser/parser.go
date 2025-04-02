@@ -25,6 +25,9 @@ func ParseSummary(url string) (string, error) {
 
 	var chapters []models.Chapter
 
+	mainTitle := doc.Find("div.summary-text h1.title").Text()
+	mainTitle = cleanText(mainTitle)
+
 	doc.Find("div.chapter-wrapper").Each(func(i int, chapter *goquery.Selection) {
 		chapterTitle := cleanText(chapter.Find("h2").Text())
 		var points []string
@@ -40,7 +43,12 @@ func ParseSummary(url string) (string, error) {
 		})
 	})
 
-	jsonData, err := json.Marshal(chapters)
+	result := models.SummaryResponse{
+		MainTitle: mainTitle,
+		Data:      chapters,
+	}
+
+	jsonData, err := json.Marshal(result)
 	if err != nil {
 		log.Printf("Error converting to JSON: %v", err)
 		return "", err
