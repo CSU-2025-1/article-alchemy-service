@@ -110,6 +110,7 @@ func (a *App) Run() {
 }
 
 func (a *App) Stop() {
+	//redis?
 	a.grpcServer.GracefulStop()
 	a.pool.Close()
 	a.rabbitmq.Close()
