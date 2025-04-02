@@ -14,6 +14,7 @@ import (
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/client/redis"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/jwt/manager"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/migrator"
+	"github.com/rabbitmq/amqp091-go"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -28,6 +29,7 @@ import (
 
 type App struct {
 	pool       *pgxpool.Pool
+	rabbitmq   *amqp091.Connection
 	grpcServer *grpc.Server
 	cfg        *config.Config
 }
@@ -52,7 +54,7 @@ func New() *App {
 	jwtManager := manager.MustLoadTokenManager(cfg.JWT.Secret)
 	fmt.Println(jwtManager.NewAccessToken(1999, 5*time.Minute))
 
-	_, channel := rabbitmqClient.NewRabbitMQ(
+	conn, channel := rabbitmqClient.NewRabbitMQ(
 		cfg.RabbitMQ.URL,
 		cfg.RabbitMQ.ContentExchange,
 		cfg.RabbitMQ.RequestContentParsing,
@@ -67,6 +69,7 @@ func New() *App {
 	contentRepo := contentRepository.NewContentRepository(postgresClient)
 
 	contentSrv := contentService.NewService(contentRepo, pub, cons)
+
 	go contentSrv.StartSomeShitListener(context.Background())
 
 	contentHandler := grpcHandler.NewContentHandler(contentSrv)
@@ -84,6 +87,7 @@ func New() *App {
 
 	return &App{
 		pool:       postgresClient,
+		rabbitmq:   conn,
 		grpcServer: grpcServer,
 		cfg:        cfg,
 	}
@@ -111,4 +115,5 @@ func (a *App) Run() {
 func (a *App) Stop() {
 	a.grpcServer.GracefulStop()
 	a.pool.Close()
+	a.rabbitmq.Close()
 }
