@@ -1,12 +1,19 @@
 package notification
 
-type EmailNotification struct {
-    Email string          `json:"email"`
-    URL   string          `json:"url"`
-    Data  []Chapter       `json:"data"`
-}
+import(
+    "encoding/json"
+)
 
 type Chapter struct {
-    Title  string         `json:"title"`
-    Points []string       `json:"points"`
+    Title  string      `json:"title"`
+    Points []string    `json:"points"`
 }
+
+type EmailNotification struct {
+    ContentID uint64            `json:"content_id"`
+    URL       string            `json:"url"`
+    Email     string            `json:"email"`
+    Body      json.RawMessage   `json:"body"`
+    Error     string            `json:"error"`
+  }
+  

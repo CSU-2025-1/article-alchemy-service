@@ -72,18 +72,18 @@ func (c *Consumer) StartConsuming() error {
                 _ = d.Nack(false, false) 
                 continue
             }
-            
+
             // Отправка email
-            if err := email.Send(notification.Email, notification.URL, notification.Data); err != nil {
-                log.Printf("Failed to send email: %v", err)
-                _ = d.Nack(false, true)
+            if err := email.Send(notification.Email, notification.URL, notification.Body, notification.Error); err != nil {
+                log.Printf("Failed to send email: %v (ContentID: %d)", err, notification.ContentID)
+                _ = d.Nack(false, false)
                 continue
             }
             
             if err := d.Ack(false); err != nil {
                 log.Printf("Failed to ack message: %v", err)
             }
-            log.Printf("Email sent to %s", notification.Email)
+            log.Printf("Email sent for %s (ContentID: %d)", notification.Email, notification.ContentID)
         }
     }()
     
