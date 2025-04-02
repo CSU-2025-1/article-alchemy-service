@@ -11,6 +11,7 @@ type Config struct {
 	Redis      Redis
 	Postgres   Postgres
 	GRPCServer GRPCServer
+	RabbitMQ   RabbitMQ
 }
 
 type JWT struct {
@@ -33,6 +34,14 @@ type Redis struct {
 type GRPCServer struct {
 	Host string `env:"GRPC_HOST"`
 	Port string `env:"GRPC_PORT"`
+}
+
+type RabbitMQ struct {
+	URL                    string `env:"RABBITMQ_URL"`
+	ContentExchange        string `env:"RABBITMQ_EXCHANGE"`
+	RequestContentParsing  string `env:"RABBITMQ_REQUEST_CONTENT_PARSING_QUEUE"`
+	ResponseContentParsing string `env:"RABBITMQ_RESPONSE_CONTENT_PARSING_QUEUE"`
+	Notification           string `env:"RABBITMQ_NOTIFICATION_QUEUE"`
 }
 
 func MustLoad() *Config {

@@ -2,6 +2,9 @@ package grpc
 
 import (
 	"context"
+	"fmt"
+	"github.com/CSU-2025-1/article-alchemy-service/content_service/internal/domain"
+	"github.com/CSU-2025-1/article-alchemy-service/content_service/internal/domain/model"
 	contentv1 "github.com/tclutin/article-alchemy-service-protos/gen/go/content_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -11,10 +14,13 @@ import (
 
 type ContentHandler struct {
 	contentv1.UnimplementedContentServiceServer
+	contentService domain.ContentService
 }
 
-func NewContentHandler() *ContentHandler {
-	return &ContentHandler{}
+func NewContentHandler(service domain.ContentService) *ContentHandler {
+	return &ContentHandler{
+		contentService: service,
+	}
 }
 
 func (c *ContentHandler) Register(grpcServer *grpc.Server) {
@@ -33,7 +39,20 @@ func (c *ContentHandler) ExtractContent(ctx context.Context, request *contentv1.
 	}
 
 	//need email
-	panic("implement me")
+
+	contentId, err := c.contentService.ExtractContent(ctx, model.ExtractContentDTO{
+		UserID: userId.(uint64),
+		Email:  "tclutin01@gmail.com",
+		Url:    request.GetUrl(),
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Internal server error")
+	}
+
+	return &contentv1.ExtractContentResponse{
+		ContentId: contentId,
+	}, nil
 }
 
 func (c *ContentHandler) GetHistory(ctx context.Context, empty *emptypb.Empty) (*contentv1.GetHistoryResponse, error) {
@@ -41,5 +60,13 @@ func (c *ContentHandler) GetHistory(ctx context.Context, empty *emptypb.Empty) (
 	if userId == nil {
 		return nil, status.Error(codes.PermissionDenied, "User not found in context")
 	}
-	panic("implement me")
+
+	contents, err := c.contentService.GetContentsByUserId(ctx, userId.(uint64))
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Internal server error")
+	}
+
+	fmt.Println(contents)
+
+	return nil, err
 }

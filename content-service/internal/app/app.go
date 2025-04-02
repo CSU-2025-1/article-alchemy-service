@@ -4,12 +4,17 @@ import (
 	"context"
 	"fmt"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/internal/config"
-	grpcHandler "github.com/CSU-2025-1/article-alchemy-service/content_service/internal/handler/grpc"
+	grpcHandler "github.com/CSU-2025-1/article-alchemy-service/content_service/internal/delivery/grpc"
+	"github.com/CSU-2025-1/article-alchemy-service/content_service/internal/delivery/rabbitmq"
+	contentService "github.com/CSU-2025-1/article-alchemy-service/content_service/internal/domain/service"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/internal/interceptor"
+	contentRepository "github.com/CSU-2025-1/article-alchemy-service/content_service/internal/repository/content"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/client/postgresql"
+	rabbitmqClient "github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/client/rabbitmq"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/client/redis"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/jwt/manager"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/migrator"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
@@ -45,8 +50,26 @@ func New() *App {
 	migrator.Migrate(postgresClient)
 
 	jwtManager := manager.MustLoadTokenManager(cfg.JWT.Secret)
+	fmt.Println(jwtManager.NewAccessToken(1999, 5*time.Minute))
 
-	contentHandler := grpcHandler.NewContentHandler()
+	_, channel := rabbitmqClient.NewRabbitMQ(
+		cfg.RabbitMQ.URL,
+		cfg.RabbitMQ.ContentExchange,
+		cfg.RabbitMQ.RequestContentParsing,
+		cfg.RabbitMQ.ResponseContentParsing,
+		cfg.RabbitMQ.Notification,
+	)
+
+	pub := rabbitmq.NewPublisher(channel, cfg.RabbitMQ.ContentExchange)
+
+	cons := rabbitmq.NewConsumer(channel)
+
+	contentRepo := contentRepository.NewContentRepository(postgresClient)
+
+	contentSrv := contentService.NewService(contentRepo, pub, cons)
+	go contentSrv.StartSomeShitListener(context.Background())
+
+	contentHandler := grpcHandler.NewContentHandler(contentSrv)
 
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
