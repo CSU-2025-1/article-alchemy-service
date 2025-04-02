@@ -4,17 +4,19 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"article-alchemy-service/internal/service"
 	"article-alchemy-service/pkg/models"
 
-	"github.com/streadway/amqp"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 func StartWorker() {
 	log.Printf("RABBITMQ_URL: %s", os.Getenv("RABBITMQ_URL"))
 	rabbitURL := os.Getenv("RABBITMQ_URL")
-	conn, err := amqp.Dial(rabbitURL)
+	conn, err := amqp091.Dial(rabbitURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
 	}
@@ -68,18 +70,31 @@ func StartWorker() {
 
 	log.Println("Worker is running, waiting for messages...")
 
-	for msg := range msgs {
-		var event models.Event
-		if err := json.Unmarshal(msg.Body, &event); err != nil {
-			log.Printf("JSON deserialization error: %v", err)
-			continue
-		}
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
-		go processEvent(event, ch)
-	}
+	done := make(chan bool)
+	go func() {
+		for msg := range msgs {
+			var event models.Event
+			if err := json.Unmarshal(msg.Body, &event); err != nil {
+				log.Printf("JSON deserialization error: %v", err)
+				continue
+			}
+
+			go processEvent(event, ch)
+		}
+		done <- true
+	}()
+
+	<-sigChan
+	log.Println("Received shutdown signal, closing worker...")
+	ch.Close()
+	conn.Close()
+	<-done
 }
 
-func processEvent(event models.Event, ch *amqp.Channel) {
+func processEvent(event models.Event, ch *amqp091.Channel) {
 	summary, err := service.GetSummary(event.URL)
 	if err != nil {
 		log.Printf("Error getting summary: %v", err)
@@ -96,7 +111,7 @@ func processEvent(event models.Event, ch *amqp.Channel) {
 	sendToQueue(responseEvent, ch)
 }
 
-func sendToQueue(response models.EventResponse, ch *amqp.Channel) {
+func sendToQueue(response models.EventResponse, ch *amqp091.Channel) {
 	queueName := os.Getenv("RABBITMQ_RESPONSE_QUEUE")
 
 	_, err := ch.QueueDeclare(
@@ -123,7 +138,7 @@ func sendToQueue(response models.EventResponse, ch *amqp.Channel) {
 		queueName,
 		false,
 		false,
-		amqp.Publishing{
+		amqp091.Publishing{
 			ContentType: "application/json",
 			Body:        body,
 		},
