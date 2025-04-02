@@ -1,4 +1,28 @@
 services:
+  auth-service:
+    restart: always
+    build: ./auth-service
+    ports:
+      - "9091:9091"
+    depends_on:
+      - db-auth-service
+      - redis
+    networks:
+      - backend
+
+  db-auth-service:
+    restart: always
+    image: postgres:alpine3.21
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./docker/auth-db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
 
   content-service:
     restart: always
@@ -20,34 +44,9 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - ./docker/content-db-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
-    networks:
-      - backend
-  
-  auth-service:
-    restart: always
-    build: ./auth-service
-    ports:
-      - "9091:9091"
-    depends_on:
-      - db-auth-service
-      - redis
-    networks:
-      - backend
-
-  db-auth-service:
-    restart: always
-    image: postgres:alpine3.21
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    volumes:
-      - ./data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+      - "5433:5432"
     networks:
       - backend
 
@@ -71,5 +70,6 @@ services:
       retries: 5
     networks:
       - backend
+
 networks:
   backend:
