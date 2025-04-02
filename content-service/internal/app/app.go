@@ -14,10 +14,8 @@ import (
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/client/redis"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/jwt/manager"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/pkg/migrator"
-	"github.com/rabbitmq/amqp091-go"
-	"time"
-
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -52,7 +50,6 @@ func New() *App {
 	migrator.Migrate(postgresClient)
 
 	jwtManager := manager.MustLoadTokenManager(cfg.JWT.Secret)
-	fmt.Println(jwtManager.NewAccessToken(1999, 5*time.Minute))
 
 	conn, channel := rabbitmqClient.NewRabbitMQ(
 		cfg.RabbitMQ.URL,
