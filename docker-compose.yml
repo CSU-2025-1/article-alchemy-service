@@ -1,4 +1,19 @@
 services:
+
+  content-service:
+    restart: always
+    build: ./content-service
+    ports:
+      - "9092:9092"
+    networks:
+      - backend
+    depends_on:
+      - db-content-service
+      - rabbitmq
+      - redis
+
+  db-content-service:
+
   auth-service:
     restart: always
     build: ./auth-service
@@ -11,6 +26,7 @@ services:
       - backend
 
   db-auth-service:
+
     restart: always
     image: postgres:alpine3.21
     environment:
@@ -32,5 +48,17 @@ services:
     networks:
       - backend
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
 networks:
   backend:
