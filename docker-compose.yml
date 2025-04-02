@@ -40,15 +40,6 @@ services:
       context: ./worker-service
       dockerfile: Dockerfile
     restart: always
-    env_file:
-      - .env
-    environment:
-      - YANDEX_TOKEN=${YANDEX_TOKEN}
-      - YANDEX_API=${YANDEX_API}
-      - RABBITMQ_URL=${RABBITMQ_URL}
-      - RABBITMQ_REQUEST_QUEUE=${RABBITMQ_REQUEST_CONTENT_PARSING_QUEUE}
-      - RABBITMQ_RESPONSE_QUEUE=${RABBITMQ_RESPONSE_CONTENT_PARSING_QUEUE}
-      - RABBITMQ_EXCHANGE=${RABBITMQ_EXCHANGE}
     depends_on:
     - rabbitmq
     ports:
