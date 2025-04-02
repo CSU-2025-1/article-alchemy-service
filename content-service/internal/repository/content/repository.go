@@ -43,6 +43,23 @@ func (c *ContentRepository) Update(ctx context.Context, model entity.Content) er
 	return err
 }
 
+func (c *ContentRepository) GetById(ctx context.Context, contentId uint64) (entity.Content, error) {
+	sql := `SELECT * FROM public.contents WHERE content_id = $1`
+
+	row := c.pool.QueryRow(ctx, sql, contentId)
+
+	var content entity.Content
+	err := row.Scan(
+		&content.ContentID,
+		&content.UserID,
+		&content.Status,
+		&content.Data,
+		&content.Error,
+		&content.CreatedAt)
+
+	return content, err
+}
+
 func (c *ContentRepository) GetContentsByUserId(ctx context.Context, userId uint64) ([]entity.Content, error) {
 	sql := `SELECT * FROM public.contents WHERE user_id = $1`
 
