@@ -13,7 +13,7 @@ export const AuthForm = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        email: '',
+        email: localStorage.getItem("lastEmail") ?? '',
         username: '',
         password: '',
         confirmPassword: ''
@@ -65,8 +65,10 @@ export const AuthForm = () => {
             if (token) {
                 setToken(token);
                 const userInfo = await getUserInfoRequest();
+                dispatch(setIsLoggedIn(true));
                 dispatch(setProfileName(userInfo.username));
                 dispatch(setProfileEmail(userInfo.email));
+                localStorage.setItem('lastEmail', userInfo.email);
             }
             else {
                 alert('Ошибка при входе.');
