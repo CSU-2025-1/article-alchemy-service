@@ -28,8 +28,16 @@ func (c *ContentHandler) Register(grpcServer *grpc.Server) {
 }
 
 func (c *ContentHandler) ExtractContentPreview(ctx context.Context, request *contentv1.ExtractContentPreviewRequest) (*emptypb.Empty, error) {
-	//TODO implement me
-	panic("implement me")
+	err := c.contentService.ExtractContentPreview(ctx, model.ExtractContentPreviewDTO{
+		Email: request.GetEmail(),
+		Url:   request.GetUrl(),
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Internal server Error")
+	}
+
+	return &emptypb.Empty{}, nil
 }
 
 func (c *ContentHandler) ExtractContent(ctx context.Context, request *contentv1.ExtractContentRequest) (*contentv1.ExtractContentResponse, error) {

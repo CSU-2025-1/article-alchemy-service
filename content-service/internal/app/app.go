@@ -45,7 +45,7 @@ func New() *App {
 
 	postgresClient := postgresql.NewClient(context.Background(), dsn)
 
-	_ = redis.NewClient(cfg.Redis.Host, cfg.Redis.Port)
+	redisClient := redis.NewClient(cfg.Redis.Host, cfg.Redis.Port)
 
 	migrator.Migrate(postgresClient)
 
@@ -75,6 +75,7 @@ func New() *App {
 		grpc.ChainUnaryInterceptor(
 			interceptor.NewAuthInterceptor(jwtManager).Unary(),
 			interceptor.ValidateInterceptor,
+			interceptor.NewLimiterInterceptor(redisClient).Unary(),
 		),
 		grpc.Creds(insecure.NewCredentials()),
 	)
