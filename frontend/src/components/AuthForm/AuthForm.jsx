@@ -19,12 +19,15 @@ export const AuthForm = () => {
         confirmPassword: ''
     });
 
-    const setToken = (token) => {
+    const setLoggedInUserData = async (token) => {
         localStorage.setItem('accessToken', token.accessToken);
         localStorage.setItem('refreshToken', token.refreshToken);
 
+        const userInfo = await getUserInfoRequest();
         dispatch(setIsLoggedIn(true));
-        dispatch(setProfileName(formData.username));
+        dispatch(setProfileName(userInfo.username));
+        dispatch(setProfileEmail(userInfo.email));
+        localStorage.setItem('lastEmail', userInfo.email);
 
         navigate(ROUTES.root);
     };
@@ -63,12 +66,7 @@ export const AuthForm = () => {
         if(isLogin) {
             const token = await loginRequest(formData.email, formData.password);
             if (token) {
-                setToken(token);
-                const userInfo = await getUserInfoRequest();
-                dispatch(setIsLoggedIn(true));
-                dispatch(setProfileName(userInfo.username));
-                dispatch(setProfileEmail(userInfo.email));
-                localStorage.setItem('lastEmail', userInfo.email);
+                await setLoggedInUserData(token);
             }
             else {
                 alert('Ошибка при входе.');
@@ -95,7 +93,7 @@ export const AuthForm = () => {
 
         const token = await registerRequest(formData.email, formData.username, formData.password);
         if (token) {
-            setToken(token);
+            await setLoggedInUserData(token);
         }
         else {
             alert('Ошибка при регистрации.');

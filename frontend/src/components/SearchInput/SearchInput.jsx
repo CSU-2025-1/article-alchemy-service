@@ -14,7 +14,6 @@ export const SearchInput = ( { backgroundColorButton='var(--color-grape)', color
 
     const handleSubmit = () => {
 
-        console.log('handleSubmit');
         let errorMessage = '';
         if (email.length < 5 || email.length > 255) {
             errorMessage += 'Длина почты должна быть от 5 до 255.\n';
@@ -24,7 +23,7 @@ export const SearchInput = ( { backgroundColorButton='var(--color-grape)', color
             errorMessage += 'Неверный формат почты.\n';
         }
 
-        if(errorMessage.length !== 0) {
+        if(errorMessage.length !== 0 && !isLoggedIn) {
             alert(errorMessage);
             return;
         }
