@@ -2,6 +2,9 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"article-alchemy-service/internal/worker"
 
@@ -17,5 +20,10 @@ func init() {
 
 func main() {
 	log.Println("Start worker...")
-	worker.StartWorker()
+	go worker.StartWorker()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	<-sigChan
+	log.Println("Received shutdown signal, closing worker...")
 }

@@ -11,16 +11,16 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func ParseSummary(url string) ([]byte, error) {
+func ParseSummary(url string) (string, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	var chapters []models.Chapter
@@ -43,10 +43,10 @@ func ParseSummary(url string) ([]byte, error) {
 	jsonData, err := json.Marshal(chapters)
 	if err != nil {
 		log.Printf("Error converting to JSON: %v", err)
-		return nil, err
+		return "", err
 	}
 
-	return jsonData, nil
+	return string(jsonData), nil
 }
 
 func cleanText(text string) string {
