@@ -11,9 +11,9 @@ import (
 )
 
 type Consumer struct {
-    conn    *amqp.Connection
-    channel *amqp.Channel
-    queue    amqp.Queue
+    conn      *amqp.Connection
+    channel   *amqp.Channel
+    queueName string
 }
 
 func NewConsumer(amqpURL, queueName string) (*Consumer, error) {
@@ -28,29 +28,18 @@ func NewConsumer(amqpURL, queueName string) (*Consumer, error) {
         return nil, fmt.Errorf("failed to open channel: %w", err)
     }
     
-    queue, err := channel.QueueDeclare(
-        queueName,
-        true,  
-        false, 
-        false,   
-        false, 
-        nil,    
-    )
-    if err != nil {
-        return nil, err
-    }
-    log.Println("Установлено имя очереди - " + queueName)
-    
     return &Consumer{
         conn:    conn,
         channel: channel,
-        queue:   queue,
+        queueName:   queueName,
     }, nil
 }
 
 func (c *Consumer) StartConsuming() error {
+    log.Println("Подключение к очереди - " + c.queueName)
+
     msgs, err := c.channel.Consume(
-        c.queue.Name,
+        c.queueName,
         "", 
         false,  
         false,   
@@ -59,8 +48,9 @@ func (c *Consumer) StartConsuming() error {
         nil, 
     )
     if err != nil {
-        return err
+        return fmt.Errorf("failed to consume queue: %w", err)
     }
+    log.Println("Успешное подключение к очереди - " + c.queueName)
     
     forever := make(chan bool)
     
