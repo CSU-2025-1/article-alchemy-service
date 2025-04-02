@@ -5,8 +5,13 @@ import(
 )
 
 type Chapter struct {
-    Title  string      `json:"title"`
-    Points []string    `json:"points"`
+    Title   string   `json:"title"`
+    Points []string  `json:"points"`
+}
+
+type Summary struct {
+    MainTitle   string  `json:"main_title"`
+    Data      []Chapter `json:"data"`
 }
 
 type EmailNotification struct {

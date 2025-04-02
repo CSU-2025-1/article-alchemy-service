@@ -39,7 +39,7 @@ services:
     build: ./notification-service
     environment:
       - RABBITMQ_URL=${RABBITMQ_URL}
-      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE}
+      - RABBITMQ_NOTIFICATION_QUEUE=${RABBITMQ_NOTIFICATION_QUEUE}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}

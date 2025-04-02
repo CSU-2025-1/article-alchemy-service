@@ -16,12 +16,12 @@ func Send(email string, url string, data json.RawMessage, errorMsg string) error
 	if errorMsg != "" {
 		content, topic = formatError(url, errorMsg)
 	} else {
-		var chapters []notification.Chapter
+		var summary notification.Summary
 		if len(data) > 0 {
-            if err := json.Unmarshal(data, &chapters); err != nil {
+            if err := json.Unmarshal(data, &summary); err != nil {
 				var bodyStr string
                 if err := json.Unmarshal(data, &bodyStr); err == nil {
-					if err := json.Unmarshal([]byte(bodyStr), &chapters); err != nil {
+					if err := json.Unmarshal([]byte(bodyStr), &summary); err != nil {
 						return fmt.Errorf("failed to unmarshal body string: %w", err)
 					}
 				} else {
@@ -29,7 +29,7 @@ func Send(email string, url string, data json.RawMessage, errorMsg string) error
 				}
             }
         }
-		content, topic = formatContent(url, chapters)
+		content, topic = formatContent(url, summary)
 	}
 
 	message := mail.NewMessage()
@@ -58,13 +58,13 @@ func formatError(url string, errorMsg string) (string, string) {
 }
 
 
-func formatContent(url string, data []notification.Chapter) (string, string) {
+func formatContent(url string, summary notification.Summary) (string, string) {
     var builder strings.Builder
-    builder.WriteString("<h2>Ваше краткое содержание готово</h2>")
+    builder.WriteString(fmt.Sprintf("<h2>%s</h2>", summary.MainTitle))
     builder.WriteString(fmt.Sprintf("<p><a href='%s'>Ссылка на статью</a></p>", url))
     builder.WriteString("<ul>")
     
-    for _, chapter := range data {
+    for _, chapter := range summary.Data {
         builder.WriteString(fmt.Sprintf("<li><strong> %s</strong><ul>", chapter.Title))
         for _, point := range chapter.Points {
             builder.WriteString(fmt.Sprintf("<li> %s</li>", point))
