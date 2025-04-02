@@ -1,4 +1,5 @@
 services:
+
   content-service:
     restart: always
     build: ./content-service
@@ -12,6 +13,20 @@ services:
       - redis
 
   db-content-service:
+
+  auth-service:
+    restart: always
+    build: ./auth-service
+    ports:
+      - "9091:9091"
+    depends_on:
+      - db-auth-service
+      - redis
+    networks:
+      - backend
+
+  db-auth-service:
+
     restart: always
     image: postgres:alpine3.21
     environment:
