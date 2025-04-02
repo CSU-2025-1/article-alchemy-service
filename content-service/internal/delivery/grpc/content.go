@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"fmt"
+	"github.com/CSU-2025-1/article-alchemy-service/content_service/internal/converter"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/internal/domain"
 	"github.com/CSU-2025-1/article-alchemy-service/content_service/internal/domain/model"
 	contentv1 "github.com/tclutin/article-alchemy-service-protos/gen/go/content_v1"
@@ -74,7 +74,5 @@ func (c *ContentHandler) GetHistory(ctx context.Context, empty *emptypb.Empty) (
 		return nil, status.Error(codes.Internal, "Internal server error")
 	}
 
-	fmt.Println(contents)
-
-	return nil, err
+	return converter.ConvertContentModelsToProto(contents), nil
 }
