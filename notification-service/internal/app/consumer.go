@@ -3,9 +3,11 @@ package app
 import (
     "encoding/json"
     "log"
-    "github.com/streadway/amqp"
     "github.com/CSU-2025-1/article-alchemy-service/notification-service/internal/domain/notification"
     "github.com/CSU-2025-1/article-alchemy-service/notification-service/internal/email"
+    "fmt"
+
+    amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Consumer struct {
@@ -17,25 +19,27 @@ type Consumer struct {
 func NewConsumer(amqpURL, queueName string) (*Consumer, error) {
     conn, err := amqp.Dial(amqpURL)
     if err != nil {
-        return nil, err
+        return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
     }
     
     channel, err := conn.Channel()
     if err != nil {
-        return nil, err
+        conn.Close()
+        return nil, fmt.Errorf("failed to open channel: %w", err)
     }
     
     queue, err := channel.QueueDeclare(
-        queueName, // name
-        true,      // durable
-        false,     // delete when unused
-        false,     // exclusive
-        false,     // no-wait
-        nil,       // arguments
+        queueName,
+        true,  
+        false, 
+        false,   
+        false, 
+        nil,    
     )
     if err != nil {
         return nil, err
     }
+    log.Println("Установлено имя очереди - " + queueName)
     
     return &Consumer{
         conn:    conn,
@@ -46,13 +50,13 @@ func NewConsumer(amqpURL, queueName string) (*Consumer, error) {
 
 func (c *Consumer) StartConsuming() error {
     msgs, err := c.channel.Consume(
-        c.queue.Name, // queue
-        "",           // consumer
-        false,       // auto-ack
-        false,       // exclusive
-        false,       // no-local
-        false,       // no-wait
-        nil,         // args
+        c.queue.Name,
+        "", 
+        false,  
+        false,   
+        false,    
+        false,  
+        nil, 
     )
     if err != nil {
         return err

@@ -20,7 +20,7 @@ func Send(email string, url string, data []notification.Chapter) error {
 	message.SetHeader("From", os.Getenv("SMTP_USER"))
 	message.SetHeader("To", email)
 	message.SetHeader("Subject", "Краткое содержание готово.")
-	message.SetBody("text/plain", content)
+	message.SetBody("text/html", content)
 
 	d := mail.NewDialer(
 		os.Getenv("SMTP_HOST"),
@@ -35,14 +35,14 @@ func Send(email string, url string, data []notification.Chapter) error {
 
 func formatContent(url string, data []notification.Chapter) (string, error) {
     var builder strings.Builder
-    builder.WriteString("<h1>Ваше краткое содержание готово</h1>")
+    builder.WriteString("<h2>Ваше краткое содержание готово</h2>")
     builder.WriteString(fmt.Sprintf("<p><a href='%s'>Ссылка на статью</a></p>", url))
     builder.WriteString("<ul>")
     
-    for i, chapter := range data {
-        builder.WriteString(fmt.Sprintf("<li><strong>%d. %s</strong><ul>", i+1, chapter.Title))
-        for j, point := range chapter.Points {
-            builder.WriteString(fmt.Sprintf("<li>%d.%d. %s</li>", i+1, j+1, point))
+    for _, chapter := range data {
+        builder.WriteString(fmt.Sprintf("<li><strong> %s</strong><ul>", chapter.Title))
+        for _, point := range chapter.Points {
+            builder.WriteString(fmt.Sprintf("<li> %s</li>", point))
         }
         builder.WriteString("</ul></li>")
     }

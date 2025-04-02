@@ -12,7 +12,7 @@ type Config struct {
 
 type RabbitMQ struct {
     URL       string `env:"RABBITMQ_URL"`
-    QueueName string `env:"RABBITMQ_NOTIFICATION_QUEUE"`
+    QueueName string `env:"RABBITMQ_QUEUE"`
 }
 
 type SMTP struct {
