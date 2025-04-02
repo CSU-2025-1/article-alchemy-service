@@ -1,11 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    isLoggedIn: true,
+    isLoggedIn: false,
     isLogin: false,
     freeRequestsCount: parseInt(localStorage.getItem("freeCount")) ?? 5,
     answerContent: null,
-    profileName: 'кто прочитал тому счастья здоровья'
+    profileName: 'кто прочитал тому счастья здоровья',
+    profileEmail: '',
 };
 
 const appSlice = createSlice({
@@ -27,6 +28,9 @@ const appSlice = createSlice({
         },
         setProfileName: (state, action) => {
             state.profileName = action.payload;
+        },
+        setProfileEmail: (state, action) => {
+            state.profileEmail = action.payload;
         }
     }
 });
@@ -35,5 +39,6 @@ export const { setIsLoggedIn,
     setIsLogin,
     decrementFreeRequestsCount,
     setAnswerContent,
-    setProfileName} = appSlice.actions;
+    setProfileName,
+    setProfileEmail} = appSlice.actions;
 export default appSlice.reducer;

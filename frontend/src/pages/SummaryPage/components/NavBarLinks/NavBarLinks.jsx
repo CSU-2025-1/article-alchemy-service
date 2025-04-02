@@ -1,12 +1,13 @@
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {setAnswerContent, setIsLoggedIn, setIsLogin, setProfileName} from "@/store/appSlice.js";
 import {Button} from "@/components/Button/index.js";
 import {useDispatch, useSelector} from "react-redux";
 import {ROUTES} from "@/app/Router/routes.js";
-import {getUserInfoRequest, logoutRequest} from "@/store/api/api.js";
+import {logoutRequest} from "@/api/api.js";
 
 export const NavBarLinks = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const isLoggedIn = useSelector(state => state.isLoggedIn);
 
     if(isLoggedIn){
@@ -23,7 +24,6 @@ export const NavBarLinks = () => {
                             color={'var(--color-grape)'}
                             content={'Выйти'}
                             handleClick={async () => {
-
                                 const response = await logoutRequest();
                                 console.log('ответ с серва при разлогине', response);
                                 if(response){
@@ -33,6 +33,10 @@ export const NavBarLinks = () => {
                                     dispatch(setAnswerContent(null));
                                     dispatch(setIsLogin(true));
                                     dispatch(setProfileName(''));
+                                }
+                                else {
+                                    await navigate(ROUTES.root);
+                                    alert('Не удалось выйти...');
                                 }
                             }}>
                     </Button>

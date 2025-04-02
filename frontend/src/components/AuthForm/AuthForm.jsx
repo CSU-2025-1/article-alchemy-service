@@ -3,8 +3,8 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import * as SC from './AuthForm.styles';
 import {useDispatch, useSelector} from "react-redux";
-import {setIsLoggedIn, setIsLogin, setProfileName} from "@/store/appSlice.js";
-import {getUserInfoRequest, loginRequest, registerRequest} from "@/store/api/api.js";
+import {setIsLoggedIn, setIsLogin, setProfileEmail, setProfileName} from "@/store/appSlice.js";
+import {getUserInfoRequest, loginRequest, registerRequest} from "@/api/api.js";
 import {useNavigate} from "react-router-dom";
 import {ROUTES} from "@/app/Router/routes.js";
 
@@ -66,6 +66,7 @@ export const AuthForm = () => {
                 setToken(token);
                 const userInfo = await getUserInfoRequest();
                 dispatch(setProfileName(userInfo.username));
+                dispatch(setProfileEmail(userInfo.email));
             }
             else {
                 alert('Ошибка при входе.');
