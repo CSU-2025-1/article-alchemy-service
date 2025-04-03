@@ -1,0 +1,12 @@
+http_server:
+  host: "localhost"
+  port: ":8080"
+
+services:
+  auth_service:
+    instances:
+      - "localhost:9091"
+      - "localhost:9092"
+  user_service:
+    instances:
+      - "user-service:9093"
