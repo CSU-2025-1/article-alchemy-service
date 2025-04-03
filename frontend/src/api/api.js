@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const url = 'http://localhost:8090';
+const url = 'http://localhost:8091';
 
 const sendGet = async (endpoint) => {
     try {
@@ -20,21 +20,23 @@ const sendPrivateGet = async (endpoint) => {
         });
         console.log(response.data);
 
-        if(response.status === 401) {
+        return response.data;
+    } catch (error) {
+        console.error('Ошибка GET:', error);
+
+        if(error.status === 401) {
             const refreshResult = await refreshAccessTokenRequest(localStorage.getItem('refreshToken'));
             if(refreshResult) {
-                response = await axios.get(`${url}${endpoint}`, {
+                const accessToken = localStorage.getItem('accessToken');
+                const response = await axios.get(`${url}${endpoint}`, {
                     headers: { Authorization: `Bearer ${accessToken}` },
                 });
+                return response.data;
             }
             else {
                 return null;
             }
         }
-
-        return response.data;
-    } catch (error) {
-        console.error('Ошибка GET:', error);
     }
 };
 
@@ -48,6 +50,7 @@ const sendPost = async (endpoint, body) => {
         if(error.status === 429) {
             return 429;
         }
+        return false;
     }
 };
 
@@ -62,20 +65,33 @@ const sendPrivatePost = async (endpoint, body) => {
 
         console.log(response.data);
 
-        if(response.status === 401) {
+        // if(response.status === 401) {
+        //     const refreshResult = await refreshAccessTokenRequest(localStorage.getItem('refreshToken'));
+        //     if(refreshResult) {
+        //         response = await axios.post(`${url}${endpoint}`, {
+        //             headers: { Authorization: `Bearer ${accessToken}` },
+        //         });
+        //     }
+        //     else {
+        //         return null;
+        //     }
+        // }
+        return response.data;
+    } catch (error) {
+        console.error('Ошибка POST:', error);
+        if(error.status === 401) {
             const refreshResult = await refreshAccessTokenRequest(localStorage.getItem('refreshToken'));
             if(refreshResult) {
-                response = await axios.post(`${url}${endpoint}`, {
+                const accessToken = localStorage.getItem('accessToken');
+                let response = await axios.post(`${url}${endpoint}`, {
                     headers: { Authorization: `Bearer ${accessToken}` },
                 });
+                return response.data;
             }
             else {
                 return null;
             }
         }
-        return response.data;
-    } catch (error) {
-        console.error('Ошибка POST:', error);
     }
 };
 
@@ -134,5 +150,9 @@ export const registeredUserSummaryRequest = async (url) => {
     const data = {
         url: url
     };
-    return await sendPost('/api/v1/contents', data);
+    return await sendPrivatePost('/api/v1/contents', data);
+};
+
+export const getHistory = async () => {
+    return await sendPrivateGet('/api/v1/contents');
 };

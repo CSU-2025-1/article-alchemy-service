@@ -9,7 +9,7 @@ import {useDispatch} from "react-redux";
 import {useNavigate} from "react-router-dom";
 import {useEffect} from "react";
 import {getUserInfoRequest, refreshAccessTokenRequest} from "@/api/api.js";
-import {setIsLoggedIn, setProfileEmail, setProfileName} from "@/store/appSlice.js";
+import {setIsLoggedIn, setIsLogin, setProfileEmail, setProfileName} from "@/store/appSlice.js";
 import {ROUTES} from "@/app/Router/routes.js";
 
 export const SummaryPage = () => {
@@ -28,6 +28,7 @@ export const SummaryPage = () => {
                 }
                 else {
                     alert('Срок сессии истёк. Войдите заново.');
+                    dispatch(setIsLogin(true));
                     navigate(ROUTES.auth);
                 }
             }

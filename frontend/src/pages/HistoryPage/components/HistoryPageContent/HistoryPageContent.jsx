@@ -10,6 +10,8 @@ import {
     HistoryContainer,
     HistoryElementContainer, HistoryTitle
 } from "@/pages/HistoryPage/components/HistoryPageContent/HistoryPageContent.styles.js";
+import {getHistory} from "@/api/api.js";
+import {StatusIcon} from "@/components/AnswerContainer/AnswerContainer.styles.js";
 
 export const HistoryPageContent  = () => {
     const dispatch = useDispatch();
@@ -19,14 +21,8 @@ export const HistoryPageContent  = () => {
 
     useEffect(() => {
         (async () => {
-            await setHistory([
-                {header: '1dsgsgsgfgdggdfsgfsddsgfsgfd'},
-                {header: '2sdfggfgfdgdgfsdgfdgfgdffdg'},
-                {header: '3dfsgsfgdfsgsdgfdfgdgffgdsfgd'},
-                {header: '4dsfdfgdfgfsdsfdgfgdsgsdfs'},
-                {header: '5dsfdfgdfgfsdsfdgfgdsgsdfs'},
-                {header: '6dsfdfgdfgfsdsfdgfgdsgsdfs'},
-            ]);
+            const result = await getHistory();
+            await setHistory(result.items);
         })();
     }, []);
 
@@ -44,17 +40,39 @@ export const HistoryPageContent  = () => {
             <>
                 <BackNavComponent route={ROUTES.root}
                                   onClick={() => {
-                                      dispatch(setAnswerContent(null));
+                                      dispatch(setAnswerContent({body: null, status: 'none'}));
                                   }}/>
                 <Title>История запросов</Title>
                 <HistoryContainer style={{display: isHistoryShow ? "flex" : "none"}}>
                     {history.slice(0, historyLimit).map((item, index) => (
                         <HistoryElementContainer key={index}>
-                            <HistoryTitle>{item.header}</HistoryTitle>
+                            <HistoryTitle>
+                                {item.status === 'completed'
+                                ?
+                                    <>
+                                        <StatusIcon style={{backgroundColor: '#1CED00'}}></StatusIcon>
+                                        {JSON.parse(item.data).main_title}
+                                    </>
+                                :item.status === 'pending'
+                                ?
+                                    <>
+                                        <StatusIcon style={{backgroundColor: '#9175DB'}}></StatusIcon>
+                                        Ожидание ответа
+                                    </>
+                                :
+                                    <>
+                                        <StatusIcon style={{backgroundColor: '#FF5959'}}></StatusIcon>
+                                        Что то пошло не так :(
+                                    </>
+                                }
+                            </HistoryTitle>
                             <Button content={'Просмотреть'}
                                     handleClick={() => {
                                         setIsHistoryShow(false);
-                                        dispatch(setAnswerContent(item.header));
+                                        dispatch(setAnswerContent({
+                                            body: JSON.parse(item.data),
+                                            status: item.status
+                                        }));
                                     }}
                                     backgroundColor={'#4870F1'}/>
                         </HistoryElementContainer>
@@ -69,7 +87,7 @@ export const HistoryPageContent  = () => {
         <>
             <BackNavComponent route={ROUTES.root}
                               onClick={() => {
-                                  dispatch(setAnswerContent(null));
+                                  dispatch(setAnswerContent({body: null, status: 'none'}));
                               }}
                               content={'На главную'}/>
             <BackNavComponent route={ROUTES.history}

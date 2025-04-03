@@ -42,7 +42,7 @@ export const AnswerContainer = () => {
                                 <TitleHeader key={`title-${index}`}>{item.title}</TitleHeader>
                                 {item.points.map((point, pointIndex) => (
                                     <TitleContent key={pointIndex}>
-                                        {point}
+                                          •  {point}
                                     </TitleContent>
                                 ))}
                             </div>

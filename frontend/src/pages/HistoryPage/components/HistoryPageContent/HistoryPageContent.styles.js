@@ -22,4 +22,7 @@ export const HistoryElementContainer = styled.div`
 
 export const HistoryTitle = styled.h2`
     font-size: 4rem;
+    display: flex;
+    gap: 4rem;
+    align-items: center;
 `;

@@ -3,13 +3,12 @@ import { Button } from '@/components/Button';
 import {decrementFreeRequestsCount, setAnswerContent} from "@/store/appSlice.js";
 import {useDispatch, useSelector} from "react-redux";
 import {useState} from "react";
-import {unregisteredUserSummaryRequest} from "@/api/api.js";
+import {getHistory, registeredUserSummaryRequest, unregisteredUserSummaryRequest} from "@/api/api.js";
 
 export const SearchInput = ( { backgroundColorButton='var(--color-grape)', colorButton='white', contentButton='Вперед!' } ) => {
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const freeRequestsCount = useSelector((state) => state.freeRequestsCount);
     const dispatch = useDispatch();
-    const answerContent = useSelector((state) => state.answerContent);
 
 
     const [link, setLink] = useState('');
@@ -39,14 +38,27 @@ export const SearchInput = ( { backgroundColorButton='var(--color-grape)', color
             return;
         }
 
-        console.log('запрос пересказа');
         if(isLoggedIn) {
-            dispatch(setAnswerContent({data: 'типо ответ', status: 'failed'}));
+            dispatch(setAnswerContent({data: 'типо ответ', status: 'pending'}));
+            const result = await registeredUserSummaryRequest(link);
+            if(result) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                const history = await getHistory();
+                const currentAnswer = history.items.find((item) => item.contentId == result.contentId);
+
+                if(currentAnswer.data.length > 0) {
+                    dispatch(setAnswerContent({body: JSON.parse(currentAnswer.data), status: 'completed'}));
+                    return;
+                }
+                dispatch(setAnswerContent({body: null, status: 'pending'}));
+                return;
+            }
+            dispatch(setAnswerContent({body: null, status: 'failed'}));
         }
         else {
             dispatch(decrementFreeRequestsCount());
             if(freeRequestsCount !== 0) {
-                await dispatch(setAnswerContent(
+                dispatch(setAnswerContent(
                     {
                         body: {
                             main_title: 'Ответ придет на указанный email.',

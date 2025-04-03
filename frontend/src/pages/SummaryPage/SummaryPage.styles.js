@@ -45,5 +45,4 @@ export const Subtitle = styled.p`
     text-align: center;
     padding-bottom: 40px;
     margin: 0;
-
 `;
