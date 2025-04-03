@@ -24,11 +24,12 @@ func StartWorker() {
 	}
 	defer consumer.Close()
 
+	var event models.WorkerEvent
 	msgs, err := consumer.Consume()
 	if err != nil {
 		errorMsg := fmt.Sprintf("Failed to consume messages: %v", err)
 		log.Print(errorMsg)
-		sendError(publisher, errorMsg)
+		sendError(publisher, errorMsg, event)
 		return
 	}
 
@@ -39,7 +40,7 @@ func StartWorker() {
 		if err := json.Unmarshal(msg.Body, &event); err != nil {
 			errorMsg := fmt.Sprintf("JSON deserialization error: %v", err)
 			log.Print(errorMsg)
-			sendError(publisher, errorMsg)
+			sendError(publisher, errorMsg, event)
 			continue
 		}
 
@@ -51,17 +52,17 @@ func processEvent(event models.WorkerEvent, publisher *rabbitmq.Publisher) {
 	responseQueue := os.Getenv("RABBITMQ_RESPONSE_QUEUE")
 	summary, err := service.GetSummary(event.URL)
 
-	if err != nil {
-		errorMsg := fmt.Sprintf("Error getting summary: %v", err)
-		log.Print(errorMsg)
-		sendError(publisher, errorMsg)
-		return
-	}
-
 	responseEvent := models.WorkerEvent{
 		ContentID: event.ContentID,
 		URL:       event.URL,
 		Email:     event.Email,
+	}
+
+	if err != nil {
+		errorMsg := fmt.Sprintf("Error getting summary: %v", err)
+		log.Print(errorMsg)
+		sendError(publisher, errorMsg, responseEvent)
+		return
 	}
 
 	responseEvent.Body = string(summary)
@@ -69,8 +70,7 @@ func processEvent(event models.WorkerEvent, publisher *rabbitmq.Publisher) {
 	_ = publisher.Publish(context.Background(), responseQueue, responseEvent)
 }
 
-func sendError(publisher *rabbitmq.Publisher, err string) {
-	var event models.WorkerEvent
+func sendError(publisher *rabbitmq.Publisher, err string, event models.WorkerEvent) {
 	responseQueue := os.Getenv("RABBITMQ_RESPONSE_QUEUE")
 	responseEvent := models.WorkerEvent{
 		ContentID: event.ContentID,
