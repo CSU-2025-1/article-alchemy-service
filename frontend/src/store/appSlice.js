@@ -3,7 +3,8 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
     isLoggedIn: false,
     isLogin: false,
-    freeRequestsCount: parseInt(localStorage.getItem("freeCount")) ?? 5,
+    freeRequestsCount:  isNaN(parseInt(localStorage.getItem("freeCount"))) ? 5
+                        : parseInt(localStorage.getItem("freeCount")),
     answerContent: {body: null, status: 'none'},
     profileName: '',
     profileEmail: '',
