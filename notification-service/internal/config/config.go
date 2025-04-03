@@ -1,8 +1,10 @@
 package config
 
 import (
-    "log"
-    "github.com/ilyakaznacheev/cleanenv"
+	"log"
+
+	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -24,6 +26,11 @@ type SMTP struct {
 
 func MustLoad() *Config {
 	var config Config
+
+    err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: No .env file found")
+	}
 
 	if err := cleanenv.ReadEnv(&config); err != nil {
 		log.Fatalln("error loading .env file")

@@ -10,8 +10,8 @@ services:
   #     - ./data:/var/lib/postgresql/data
   #   ports:
   #     - "5432:5432"
-  #   networks:
-  #     - backend
+    # networks:
+    #   - backend
 
   # redis:
   #   restart: always
@@ -27,8 +27,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 10s
@@ -37,12 +37,6 @@ services:
 
   notification-service:
     build: ./notification-service
-    environment:
-      - RABBITMQ_URL=${RABBITMQ_URL}
-      - RABBITMQ_NOTIFICATION_QUEUE=${RABBITMQ_NOTIFICATION_QUEUE}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
     depends_on:
       rabbitmq:
         condition: service_healthy
