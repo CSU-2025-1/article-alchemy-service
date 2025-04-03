@@ -7,9 +7,35 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - ./docker/auth-db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - backend
+
+  content-service:
+    restart: always
+    build: ./content-service
+    ports:
+      - "9092:9092"
+    networks:
+      - backend
+    depends_on:
+      - db-content-service
+      - rabbitmq
+      - redis
+
+  db-content-service:
+    restart: always
+    image: postgres:alpine3.21
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./docker/content-db-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
     networks:
       - backend
 
@@ -35,6 +61,7 @@ services:
       retries: 3
     networks:
       - backend
+ 
   worker:
     build:
       context: ./worker-service
@@ -48,6 +75,18 @@ services:
       - backend
  
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
 networks:
   backend:
-    driver: bridge
