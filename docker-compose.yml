@@ -1,4 +1,14 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+    restart: unless-stopped
+
   auth-service:
     restart: always
     build: ./auth-service
@@ -60,6 +70,16 @@ services:
     networks:
       - backend
 
+  notification-service:
+    build: ./notification-service
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - backend
+
+  redis:
     restart: always
     image: redis:7.4.2-alpine
     ports:
@@ -79,27 +99,5 @@ services:
       retries: 5
     networks:
       - backend
-
-  notification-service:
-    build: ./notification-service
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - backend
-      
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    networks:
-      - backend
-    restart: unless-stopped
-
-
 networks:
   backend:

@@ -3,7 +3,6 @@ package config
 import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"log"
-	"os"
 )
 
 type Config struct {
@@ -23,10 +22,7 @@ type Service struct {
 func MustLoadConfig() *Config {
 	var config Config
 
-	path := os.Getenv("CONFIG_PATH_GATEWAY")
-	if len(path) == 0 {
-		log.Fatalln("CONFIG_PATH_GATEWAY environment variable not set")
-	}
+	path := "../../configs/config.yaml"
 
 	if err := cleanenv.ReadConfig(path, &config); err != nil {
 		log.Fatalln("failed to read config:", err)
