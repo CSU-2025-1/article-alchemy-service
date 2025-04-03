@@ -82,7 +82,7 @@ func main() {
 
 	corsMux := AllowCORSMiddleware(mux)
 
-	err = http.ListenAndServe(":8090", corsMux)
+	err = http.ListenAndServe(":8091", corsMux)
 	fmt.Println(err)
 	if err != nil {
 		panic(err)

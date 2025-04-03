@@ -46,6 +46,7 @@ func (s *Service) ExtractContent(ctx context.Context, dto model.ExtractContentDT
 	contentId, err := s.repository.Create(ctx, model.Content{
 		UserID:    dto.UserID,
 		Status:    model.StatusPending,
+		URL:       dto.Url,
 		Data:      "",
 		Error:     "",
 		CreatedAt: time.Now().UTC(),

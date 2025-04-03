@@ -12,6 +12,7 @@ func ConvertContentModelsToProto(contents []model.Content) *contentv1.GetHistory
 		items = append(items, &contentv1.GetHistoryItem{
 			ContentId: item.ContentID,
 			Status:    item.Status,
+			Url:       item.URL,
 			Data:      item.Data,
 			Error:     item.Error,
 			CreatedAt: timestamppb.New(item.CreatedAt),

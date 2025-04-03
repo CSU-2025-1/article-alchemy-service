@@ -16,13 +16,14 @@ func NewContentRepository(pool *pgxpool.Pool) *ContentRepository {
 }
 
 func (c *ContentRepository) Create(ctx context.Context, model model.Content) (uint64, error) {
-	sql := `INSERT INTO public.contents (user_id, status, data, error, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING contents.content_id`
+	sql := `INSERT INTO public.contents (user_id, status, url, data, error, created_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING contents.content_id`
 
 	row := c.pool.QueryRow(
 		ctx,
 		sql,
 		model.UserID,
 		model.Status,
+		model.URL,
 		model.Data,
 		model.Error,
 		model.CreatedAt)
@@ -53,6 +54,7 @@ func (c *ContentRepository) GetById(ctx context.Context, contentId uint64) (mode
 		&content.ContentID,
 		&content.UserID,
 		&content.Status,
+		&content.URL,
 		&content.Data,
 		&content.Error,
 		&content.CreatedAt)

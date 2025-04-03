@@ -12,6 +12,7 @@ type Content struct {
 	ContentID uint64    `db:"content_id"`
 	UserID    uint64    `db:"user_id"`
 	Status    string    `db:"status"`
+	URL       string    `db:"url"`
 	Data      string    `db:"data"`
 	Error     string    `db:"error"`
 	CreatedAt time.Time `db:"created_at"`
