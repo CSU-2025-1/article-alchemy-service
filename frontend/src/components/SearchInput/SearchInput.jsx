@@ -3,16 +3,19 @@ import { Button } from '@/components/Button';
 import {decrementFreeRequestsCount, setAnswerContent} from "@/store/appSlice.js";
 import {useDispatch, useSelector} from "react-redux";
 import {useState} from "react";
+import {unregisteredUserSummaryRequest} from "@/api/api.js";
 
 export const SearchInput = ( { backgroundColorButton='var(--color-grape)', colorButton='white', contentButton='Вперед!' } ) => {
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const freeRequestsCount = useSelector((state) => state.freeRequestsCount);
     const dispatch = useDispatch();
+    const answerContent = useSelector((state) => state.answerContent);
+
 
     const [link, setLink] = useState('');
     const [email, setEmail] = useState('');
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
 
         let errorMessage = '';
         if (email.length < 5 || email.length > 255) {
@@ -22,6 +25,9 @@ export const SearchInput = ( { backgroundColorButton='var(--color-grape)', color
         if (!emailRegex.test(email)) {
             errorMessage += 'Неверный формат почты.\n';
         }
+        if(link.length < 1) {
+            errorMessage += 'Нет ссылки!';
+        }
 
         if(errorMessage.length !== 0 && !isLoggedIn) {
             alert(errorMessage);
@@ -29,16 +35,32 @@ export const SearchInput = ( { backgroundColorButton='var(--color-grape)', color
         }
 
         if(freeRequestsCount === 0 && !isLoggedIn) {
-            dispatch(setAnswerContent('Нет ответа'));
+            dispatch(setAnswerContent({data: null, status: 'none'}));
             return;
         }
 
         console.log('запрос пересказа');
         if(isLoggedIn) {
-            dispatch(setAnswerContent('типо ответ'));
+            dispatch(setAnswerContent({data: 'типо ответ', status: 'failed'}));
         }
-        if(!isLoggedIn) {
+        else {
             dispatch(decrementFreeRequestsCount());
+            if(freeRequestsCount !== 0) {
+                await dispatch(setAnswerContent(
+                    {
+                        body: {
+                            main_title: 'Ответ придет на указанный email.',
+                            data: []
+
+                        },
+                        status: 'completed'
+                    }));
+
+                const result = await unregisteredUserSummaryRequest(link, email);
+                if(!result) {
+                    dispatch(setAnswerContent({body: null, status: 'failed'}));
+                }
+            }
         }
     };
 

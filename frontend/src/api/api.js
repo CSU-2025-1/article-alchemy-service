@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const url = 'http://localhost:8080';
+const url = 'http://localhost:8090';
 
 const sendGet = async (endpoint) => {
     try {
@@ -45,6 +45,9 @@ const sendPost = async (endpoint, body) => {
         return response.data;
     } catch (error) {
         console.error('Ошибка POST:', error);
+        if(error.status === 429) {
+            return 429;
+        }
     }
 };
 
@@ -116,4 +119,20 @@ export const refreshAccessTokenRequest = async () => {
         return true;
     }
     return false;
+};
+
+export const unregisteredUserSummaryRequest = async (url, email) => {
+    const data = {
+        url: url,
+        email: email
+    };
+    const result = await sendPost('/api/v1/contents/preview', data);
+    return result !== 429;
+};
+
+export const registeredUserSummaryRequest = async (url) => {
+    const data = {
+        url: url
+    };
+    return await sendPost('/api/v1/contents', data);
 };

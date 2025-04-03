@@ -30,7 +30,7 @@ export const NavBarLinks = () => {
                                     localStorage.removeItem('refreshToken');
                                     localStorage.removeItem('accessToken');
                                     dispatch(setIsLoggedIn(false));
-                                    dispatch(setAnswerContent(null));
+                                    dispatch(setAnswerContent({data: null, status: 'none'}));
                                     dispatch(setIsLogin(true));
                                     dispatch(setProfileName(''));
                                 }

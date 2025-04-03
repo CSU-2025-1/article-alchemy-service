@@ -3,7 +3,7 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import * as SC from './AuthForm.styles';
 import {useDispatch, useSelector} from "react-redux";
-import {setIsLoggedIn, setIsLogin, setProfileEmail, setProfileName} from "@/store/appSlice.js";
+import {setAnswerContent, setIsLoggedIn, setIsLogin, setProfileEmail, setProfileName} from "@/store/appSlice.js";
 import {getUserInfoRequest, loginRequest, registerRequest} from "@/api/api.js";
 import {useNavigate} from "react-router-dom";
 import {ROUTES} from "@/app/Router/routes.js";
@@ -27,6 +27,7 @@ export const AuthForm = () => {
         dispatch(setIsLoggedIn(true));
         dispatch(setProfileName(userInfo.username));
         dispatch(setProfileEmail(userInfo.email));
+        dispatch(setAnswerContent({body: null, status: 'none'}));
         localStorage.setItem('lastEmail', userInfo.email);
 
         navigate(ROUTES.root);

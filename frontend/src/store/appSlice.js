@@ -4,8 +4,8 @@ const initialState = {
     isLoggedIn: false,
     isLogin: false,
     freeRequestsCount: parseInt(localStorage.getItem("freeCount")) ?? 5,
-    answerContent: null,
-    profileName: 'кто прочитал тому счастья здоровья',
+    answerContent: {body: null, status: 'none'},
+    profileName: '',
     profileEmail: '',
 };
 
