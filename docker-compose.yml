@@ -81,6 +81,8 @@ services:
       rabbitmq:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - backend
 
   rabbitmq:
     image: rabbitmq:3-management
