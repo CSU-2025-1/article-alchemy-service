@@ -1,28 +1,68 @@
 services:
-  # db:
-  #   restart: always
-  #   image: postgres:alpine3.21
-  #   environment:
-  #     - POSTGRES_USER=${POSTGRES_USER}
-  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-  #     - POSTGRES_DB=${POSTGRES_DB}
-  #   volumes:
-  #     - ./data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
-    # networks:
-    #   - backend
+  auth-service:
+    restart: always
+    build: ./auth-service
+    ports:
+      - "9091:9091"
+    depends_on:
+      - db-auth-service
+      - redis
+    networks:
+      - backend
 
-  # redis:
-  #   restart: always
-  #   image: redis:7.4.2-alpine
-  #   ports:
-  #     - "6379:6379"
-  #   networks:
-  #     - backend
+  db-auth-service:
+    restart: always
+    image: postgres:alpine3.21
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./docker/auth-db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
 
-  rabbitmq:
-    image: rabbitmq:3-management
+  content-service:
+    restart: always
+    build: ./content-service
+    ports:
+      - "9092:9092"
+    networks:
+      - backend
+    depends_on:
+      - db-content-service
+      - rabbitmq
+      - redis
+
+  db-content-service:
+    restart: always
+    image: postgres:alpine3.21
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./docker/content-db-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - backend
+
+  worker:
+    build: ./worker-service
+    restart: always
+    depends_on:
+      - rabbitmq
+    ports:
+      - "8008:8080"
+    networks:
+      - backend
+
+  redis:
+    restart: always
+    image: redis:7.4.2-alpine
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -41,6 +81,19 @@ services:
       rabbitmq:
         condition: service_healthy
     restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
 
 networks:
   backend:
