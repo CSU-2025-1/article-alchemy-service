@@ -9,7 +9,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
-	"log/slog"
 	"net"
 	"net/http"
 	"strings"
@@ -30,7 +29,6 @@ func AttachIpAddressMetadata(ctx context.Context, r *http.Request) metadata.MD {
 	if err != nil {
 		return nil
 	}
-	slog.Info("Чепенькус чекай, должен быть ip тут", slog.String("ip", ip), slog.String("remote", r.RemoteAddr), slog.String("host", r.Host))
 	return metadata.Pairs("x-client-ip", ip)
 }
 
