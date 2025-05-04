@@ -22,7 +22,7 @@ type Service struct {
 func MustLoadConfig() *Config {
 	var config Config
 
-	path := "../../configs/config.yaml"
+	path := "./configs/config.yaml"
 
 	if err := cleanenv.ReadConfig(path, &config); err != nil {
 		log.Fatalln("failed to read config:", err)

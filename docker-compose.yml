@@ -9,6 +9,14 @@ services:
       - backend
     restart: unless-stopped
 
+  api-gateway:
+    restart: always
+    build: ./api-gateway
+    ports:
+      - "8091:8091"
+    networks:
+      - backend
+
   auth-service:
     restart: always
     build: ./auth-service
