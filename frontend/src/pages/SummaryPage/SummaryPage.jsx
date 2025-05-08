@@ -28,7 +28,11 @@ export const SummaryPage = () => {
                 }
                 else {
                     alert('Срок сессии истёк. Войдите заново.');
+                    localStorage.removeItem('refreshToken');
                     dispatch(setIsLogin(true));
+                    dispatch(setProfileName(''));
+                    dispatch(setProfileEmail(''));
+                    dispatch(setIsLoggedIn(false));
                     navigate(ROUTES.auth);
                 }
             }
