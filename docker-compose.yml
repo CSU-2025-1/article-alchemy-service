@@ -9,8 +9,6 @@ services:
       - backend
     depends_on:
       - api-gateway
-      - auth-service
-      - content-service
 
   frontend:
     build:
@@ -59,7 +57,6 @@ services:
     build: ./content-service
     networks:
       - backend
-    scale: 3
     depends_on:
       - db-content-service
       - rabbitmq
