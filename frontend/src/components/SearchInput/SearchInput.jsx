@@ -39,12 +39,21 @@ export const SearchInput = ( { backgroundColorButton='var(--color-grape)', color
         }
 
         if(isLoggedIn) {
-            dispatch(setAnswerContent({data: 'типо ответ', status: 'pending'}));
+            dispatch(setAnswerContent({data: 'Ожидание ответа...', status: 'pending'}));
             const result = await registeredUserSummaryRequest(link);
             if(result) {
-                await new Promise(resolve => setTimeout(resolve, 500));
-                const history = await getHistory();
-                const currentAnswer = history.items.find((item) => item.contentId == result.contentId);
+                let counter = 0;
+                let history = await getHistory();
+                let currentAnswer = history.items.find((item) => item.contentId == result.contentId);
+                while(currentAnswer.data.length === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    history = await getHistory();
+                    currentAnswer = history.items.find((item) => item.contentId == result.contentId);
+                    counter += 1;
+                    if(counter === 50) {
+                        break;
+                    }
+                }
 
                 if(currentAnswer.data.length > 0) {
                     dispatch(setAnswerContent({body: JSON.parse(currentAnswer.data), status: 'completed'}));

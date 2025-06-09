@@ -1,4 +1,15 @@
 services:
+  envoy:
+    image: envoyproxy/envoy:v1.25-latest
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+    networks:
+      - backend
+    depends_on:
+      - api-gateway
+
   frontend:
     build:
       context: ./frontend
@@ -12,8 +23,7 @@ services:
   api-gateway:
     restart: always
     build: ./api-gateway
-    ports:
-      - "8091:8091"
+    scale: 3
     networks:
       - backend
 
@@ -45,8 +55,6 @@ services:
   content-service:
     restart: always
     build: ./content-service
-    ports:
-      - "9092:9092"
     networks:
       - backend
     depends_on:
